@@ -1,0 +1,67 @@
+name: gema
+description: Personal offline-first diet tracker with AI meal estimation.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.3.0
+
+  # Database
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.4
+
+  # Secure storage (API key only — never stored in Isar)
+  flutter_secure_storage: ^9.2.2
+
+  # Camera + image compression
+  camera: ^0.11.0+2
+  image: ^4.2.0
+
+  # Barcode scanner
+  mobile_scanner: ^5.2.3
+
+  # Background tasks
+  workmanager: ^0.9.0
+
+  # Notifications
+  flutter_local_notifications: ^17.2.4
+  timezone: ^0.9.4
+
+  # Connectivity
+  connectivity_plus: ^6.0.5
+
+  # HTTP (Gemini API + Open Food Facts)
+  http: ^1.2.2
+
+  # Routing
+  go_router: ^14.6.2
+
+  # Data export
+  share_plus: ^10.0.0
+
+  # Utilities
+  intl: ^0.19.0
+
+dependency_overrides:
+  isar_flutter_libs:
+    path: packages/isar_flutter_libs
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  isar_generator: ^3.1.0+1
+  riverpod_generator: ^2.3.9
+  build_runner: ^2.4.13
+
+flutter:
+  uses-material-design: true
