@@ -44,7 +44,7 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk "dist/gema-${GITHUB_SHA::7}.apk"
 
       - name: Publish "latest" release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: latest
           name: Latest build (${{ github.sha }})
