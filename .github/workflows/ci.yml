@@ -26,8 +26,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # *.g.dart files are emitted by build_runner with its own (older) formatter
+      # style; formatting them by hand would break the generated-code check below.
       - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: git ls-files '*.dart' ':!:*.g.dart' | xargs dart format --output=none --set-exit-if-changed
 
       - name: Analyze
         run: flutter analyze --fatal-infos

@@ -147,7 +147,7 @@ ThemeData buildTheme({required bool dark}) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
         side: dark
-            ? BorderSide(color: GemaColors.darkOutlineVar)
+            ? const BorderSide(color: GemaColors.darkOutlineVar)
             : BorderSide.none,
       ),
     ),
