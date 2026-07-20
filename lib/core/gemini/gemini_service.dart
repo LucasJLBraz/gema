@@ -1,27 +1,16 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 
-const _apiKeyStorageKey = 'gemini_api_key';
 const productionModel = 'gemini-2.5-flash-lite';
 
 Uri _endpointFor(String model, String apiKey) => Uri.parse(
   'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
 );
-
-const _storage = FlutterSecureStorage();
-
-Future<String?> loadApiKey() => _storage.read(key: _apiKeyStorageKey);
-
-Future<void> saveApiKey(String key) =>
-    _storage.write(key: _apiKeyStorageKey, value: key);
-
-Future<void> deleteApiKey() => _storage.delete(key: _apiKeyStorageKey);
 
 class GeminiResult {
   const GeminiResult({
@@ -126,25 +115,25 @@ Future<GeminiResult> callGemini({
   });
 
   final uri = _endpointFor(model, apiKey);
-  debugPrint('[Gemini] POST $model (attempt ${retryCount + 1})');
+  developer.log('[Gemini] POST $model (attempt ${retryCount + 1})');
   final response = await http.post(
     uri,
     headers: {'Content-Type': 'application/json'},
     body: body,
   );
-  debugPrint('[Gemini] status=${response.statusCode}');
+  developer.log('[Gemini] status=${response.statusCode}');
 
   if (response.statusCode == 429 || response.statusCode == 503) {
     final retryAfter = _parseRetryAfter(
       response.headers['retry-after'],
       retryCount,
     );
-    debugPrint('[Gemini] rate-limited — retry in ${retryAfter}s');
+    developer.log('[Gemini] rate-limited — retry in ${retryAfter}s');
     throw GeminiRateLimitException(retryAfter);
   }
 
   if (response.statusCode != 200) {
-    debugPrint(
+    developer.log(
       '[Gemini] error body: ${response.body.substring(0, response.body.length.clamp(0, 300))}',
     );
     throw GeminiApiException('HTTP ${response.statusCode}: ${response.body}');
@@ -159,12 +148,16 @@ Future<GeminiResult> callGemini({
   return _parseResult(parsed, text);
 }
 
+/// [apiKey] is loaded by the caller (see `api_key_storage.dart`) rather than
+/// by this function, so this file has no Flutter engine dependency — that
+/// keeps it importable from plain `dart run` scripts (see
+/// tool/benchmark_kcal.dart) that never touch secure storage.
 Future<GeminiResult> estimateMeal({
+  required String? apiKey,
   String? photoPath,
   required String userNote,
   int retryCount = 0,
 }) async {
-  final apiKey = await loadApiKey();
   if (apiKey == null || apiKey.isEmpty) {
     throw const GeminiApiException('API key not configured');
   }

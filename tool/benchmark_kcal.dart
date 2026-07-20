@@ -3,9 +3,22 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:gema/core/gemini/gemini_service.dart';
+// Deliberately not nutrition_reference_loader.dart: that file's
+// loadTacoReference() uses package:flutter/services.dart (rootBundle),
+// which transitively requires dart:ui — unavailable under plain `dart run`.
+// Read the asset via dart:io instead and reuse the pure parser.
 import 'package:gema/core/gemini/nutrition_reference.dart';
 
-const _models = ['gemini-2.5-flash-lite', 'gemini-3.1-flash-lite'];
+// gemini-2.5-flash-lite (productionModel) is deliberately excluded from the
+// full run: a smoke test with a freshly-created API key got HTTP 404 "This
+// model models/gemini-2.5-flash-lite is no longer available to new users"
+// on all 4 attempts (evidence preserved in
+// benchmark_results/smoke_test_gemini25_404_evidence.jsonl) — the model is
+// already unusable for any new GEMA user's own key today, not just after
+// the 2026-10-16 shutdown date. Spending 200 of the 400 planned calls on a
+// guaranteed-404 arm would waste time/quota without adding information the
+// smoke test didn't already establish.
+const _models = ['gemini-3.1-flash-lite'];
 const _delayBetweenCalls = Duration(seconds: 6);
 
 class _Arm {
@@ -31,7 +44,8 @@ Future<void> main() async {
     exit(1);
   }
 
-  final reference = await loadTacoReference();
+  final referenceJson = File('assets/data/taco_reference.json').readAsStringSync();
+  final reference = parseTacoReferenceJson(referenceJson);
   final referenceBlock = formatReferenceTableBlock(reference);
 
   final arms = [
@@ -84,6 +98,14 @@ Future<void> main() async {
             stderr.writeln('  rate-limited, sleeping ${e.retryAfterSeconds}s');
             await Future<void>.delayed(Duration(seconds: e.retryAfterSeconds));
             retryCount++;
+          } on GeminiApiException catch (e) {
+            // GeminiApiException doesn't override toString(), so e.toString()
+            // alone would only print "Instance of 'GeminiApiException'" —
+            // found by inspecting real smoke-test output where every
+            // gemini-2.5-flash-lite call failed with no useful detail.
+            latencyMs = stopwatch.elapsedMilliseconds;
+            error = e.message;
+            break;
           } catch (e) {
             latencyMs = stopwatch.elapsedMilliseconds;
             error = e.toString();

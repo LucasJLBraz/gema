@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/algorithms/tdee_algorithms.dart';
-import '../../core/gemini/gemini_service.dart' as gemini;
+import '../../core/gemini/api_key_storage.dart' as gemini;
 import '../../core/theme/app_theme.dart';
 import '../goals/models/goal.dart';
 import '../goals/providers/goal_provider.dart';

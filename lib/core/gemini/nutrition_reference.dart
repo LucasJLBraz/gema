@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 
 class TacoReferenceEntry {
   const TacoReferenceEntry({
@@ -45,9 +44,4 @@ String formatReferenceTableBlock(List<TacoReferenceEntry> entries) {
     );
   }
   return buffer.toString();
-}
-
-Future<List<TacoReferenceEntry>> loadTacoReference() async {
-  final raw = await rootBundle.loadString('assets/data/taco_reference.json');
-  return parseTacoReferenceJson(raw);
 }

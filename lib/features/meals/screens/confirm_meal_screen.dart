@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/gemini/api_key_storage.dart' as gemini;
 import '../../../core/gemini/gemini_service.dart' as gemini;
 import '../../../core/theme/app_theme.dart';
 import '../models/meal.dart';
@@ -56,7 +57,9 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
     try {
       // Require at least a photo or a user note
       if (meal.photoPath == null && meal.userNote.isEmpty) return;
+      final apiKey = await gemini.loadApiKey();
       final result = await gemini.estimateMeal(
+        apiKey: apiKey,
         photoPath: meal.photoPath,
         userNote: meal.userNote,
         retryCount: meal.retryCount,
