@@ -26,18 +26,12 @@ GoRouter router(Ref ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/onboarding',
-        builder: (_, _) => const OnboardingScreen(),
-      ),
+      GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
       ShellRoute(
         builder: (_, _, child) => MainShell(child: child),
         routes: [
           GoRoute(path: '/home', builder: (_, _) => const SizedBox.shrink()),
-          GoRoute(
-            path: '/history',
-            builder: (_, _) => const SizedBox.shrink(),
-          ),
+          GoRoute(path: '/history', builder: (_, _) => const SizedBox.shrink()),
           GoRoute(
             path: '/analytics',
             builder: (_, _) => const SizedBox.shrink(),

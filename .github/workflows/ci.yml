@@ -12,7 +12,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Pinned exact SDK version — "stable" alone is a moving target: it
+  # advanced 3.44.6 -> 3.44.7 mid-session and silently changed dart
+  # format's output, turning a green run red with no code change.
+  # Bump this deliberately (and re-run `dart format`/`flutter analyze`
+  # locally against the same version) instead of floating on stable.
   FLUTTER_CHANNEL: stable
+  FLUTTER_VERSION: "3.44.6"
 
 jobs:
   analyze:
@@ -25,6 +31,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Install dependencies
@@ -56,6 +63,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Install dependencies
@@ -88,6 +96,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ env.FLUTTER_CHANNEL }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Install dependencies
