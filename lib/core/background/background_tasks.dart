@@ -25,7 +25,7 @@ void callbackDispatcher() {
 
 /// Registers all periodic background tasks. Call once from main() after init.
 Future<void> registerBackgroundTasks() async {
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  await Workmanager().initialize(callbackDispatcher);
 
   // Nightly summary: runs ~daily at midnight
   await Workmanager().registerPeriodicTask(
