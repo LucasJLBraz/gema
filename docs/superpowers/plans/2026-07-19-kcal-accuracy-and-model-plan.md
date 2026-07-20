@@ -676,24 +676,28 @@ echo "benchmark_data/" >> .gitignore
 echo "benchmark_results/" >> .gitignore
 ```
 
-- [ ] **Step 2: Pull a Nutrition5k sample via `gsutil`**
+- [ ] **Step 2: Pull a Nutrition5k sample via plain HTTPS**
 
-Nutrition5k ([google-research-datasets/Nutrition5k](https://github.com/google-research-datasets/Nutrition5k), CC BY 4.0) is 181GB in full — pull only metadata plus a sample of overhead images:
+Nutrition5k ([google-research-datasets/Nutrition5k](https://github.com/google-research-datasets/Nutrition5k), CC BY 4.0) is 181GB in full — pull only metadata plus a sample of overhead images. **`gsutil` is not required and may not be installed** — the bucket is a public GCS bucket also served over plain HTTPS at `https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/<path>` (verified reachable: both the metadata CSV and a sample `imagery/realsense_overhead/<dish_id>/rgb.png` return HTTP 200 via plain `curl`/HTTP GET, no auth needed).
 
 ```bash
 mkdir -p benchmark_data/nutrition5k
-gsutil cp "gs://nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv" \
-  benchmark_data/nutrition5k/
+curl -sf -o benchmark_data/nutrition5k/dish_metadata_cafe1.csv \
+  "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/metadata/dish_metadata_cafe1.csv"
 ```
 
-`dish_metadata_cafe1.csv` columns: `dish_id, total_calories, total_mass, total_fat, total_carb, total_protein, num_ingrs, (ingr_1_id, ingr_1_name, ingr_1_grams, ...)` — only the first 7 columns matter here.
+`dish_metadata_cafe1.csv` has **no header row**. Columns (verified by inspection): `dish_id, total_calories, total_mass, total_fat, total_carb, total_protein`, immediately followed by repeating 7-field ingredient tuples (`ingr_id, name, grams, kcal, fat, carb, protein`) — there is no separate `num_ingrs` count column. Only the first 6 columns matter here.
 
 Write `tool/prepare_nutrition5k_sample.dart`:
 
 ```dart
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
+
 const _sampleSize = 60;
+const _imageBaseUrl =
+    'https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead';
 
 List<String> _parseCsvLine(String line) => line.split(',');
 
@@ -722,14 +726,12 @@ void main() async {
 
   for (final row in sample) {
     final dishId = row['dish_id']!;
-    final result = await Process.run('gsutil', [
-      'cp',
-      'gs://nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/$dishId/rgb.png',
-      '${imagesDir.path}/$dishId.png',
-    ]);
-    if (result.exitCode != 0) {
-      stderr.writeln('Skipping $dishId: ${result.stderr}');
+    final response = await http.get(Uri.parse('$_imageBaseUrl/$dishId/rgb.png'));
+    if (response.statusCode != 200) {
+      stderr.writeln('Skipping $dishId: HTTP ${response.statusCode}');
+      continue;
     }
+    File('${imagesDir.path}/$dishId.png').writeAsBytesSync(response.bodyBytes);
   }
 
   final csv = StringBuffer('sample_id,dataset,image_path,weight_g,kcal,protein_g,carb_g,fat_g\n');
@@ -756,7 +758,7 @@ dart run tool/prepare_nutrition5k_sample.dart
 wc -l benchmark_data/ground_truth.csv
 ```
 
-Expected: `benchmark_data/ground_truth.csv` with a header plus up to 60 data rows (fewer if some `gsutil cp` calls failed — that's fine, note the actual count).
+Expected: `benchmark_data/ground_truth.csv` with a header plus up to 60 data rows (fewer if some image downloads 404 — that's fine, note the actual count).
 
 - [ ] **Step 3: Pull the SNAPMe sample (manual download step)**
 
@@ -799,7 +801,7 @@ git commit -m "Add benchmark ground-truth preparation scripts (Nutrition5k + SNA
 
 **Interfaces:**
 - Consumes: `benchmark_data/ground_truth.csv` (Task 4), `callGemini`/`systemPromptBaseline`/`systemPromptGrounded`/`responseSchemaBaseline`/`responseSchemaGrounded`/`loadTacoReference`/`formatReferenceTableBlock` (Task 2 + Task 3).
-- Produces: `benchmark_results/raw_results.jsonl`, one JSON object per line: `{sample_id, dataset, arm, model, ground_truth: {weight_g, kcal, protein_g, carb_g, fat_g}, predicted: {...GeminiResult fields...} | null, error: String | null}`. Task 6 consumes this file.
+- Produces: `benchmark_results/raw_results.jsonl`, one JSON object per line: `{sample_id, dataset, arm, model, ground_truth: {weight_g, kcal, protein_g, carb_g, fat_g}, predicted: {...GeminiResult fields...} | null, latency_ms: int, error: String | null}`. `latency_ms` times only the final `callGemini` attempt that returned (success or error) — rate-limit backoff sleeps are excluded so it reflects real per-call API latency, not queueing time. Task 6 consumes this file.
 
 - [ ] **Step 1: Write the runner**
 
@@ -863,8 +865,10 @@ Future<void> main() async {
         Map<String, dynamic>? predicted;
         String? error;
         var retryCount = 0;
+        var latencyMs = 0;
 
         while (true) {
+          final stopwatch = Stopwatch()..start();
           try {
             final result = await callGemini(
               systemPrompt: arm.systemPrompt,
@@ -875,6 +879,7 @@ Future<void> main() async {
               userNote: '',
               retryCount: retryCount,
             );
+            latencyMs = stopwatch.elapsedMilliseconds;
             predicted = {
               'kcal_point': result.kcalPoint,
               'protein_point': result.proteinPoint,
@@ -888,6 +893,7 @@ Future<void> main() async {
             await Future.delayed(Duration(seconds: e.retryAfterSeconds));
             retryCount++;
           } catch (e) {
+            latencyMs = stopwatch.elapsedMilliseconds;
             error = e.toString();
             break;
           }
@@ -906,6 +912,7 @@ Future<void> main() async {
             'fat_g': double.tryParse(row['fat_g'] ?? ''),
           },
           'predicted': predicted,
+          'latency_ms': latencyMs,
           'error': error,
         }));
 
@@ -954,8 +961,8 @@ git commit -m "Add KCAL grounding benchmark runner (prompt arm x model matrix)"
 - Create: `tool/compute_benchmark_metrics.dart`
 
 **Interfaces:**
-- Consumes: `benchmark_results/raw_results.jsonl` (Task 5).
-- Produces: `benchmark_results/report.md`.
+- Consumes: `benchmark_results/raw_results.jsonl` (Task 5), including its `latency_ms` field.
+- Produces: `benchmark_results/report.md`, with a `Latência média` column per (arm, model) — this feeds Task 8's README write-up.
 
 - [ ] **Step 1: Write the metrics script**
 
@@ -1001,13 +1008,19 @@ void main() {
 
   final groups = <String, List<_Sample>>{};
   final matchRates = <String, List<bool>>{};
+  final latencies = <String, List<int>>{};
 
   for (final row in decoded) {
+    final key = '${row['arm']}__${row['model']}';
+    final latencyMs = row['latency_ms'] as int?;
+    if (latencyMs != null) {
+      (latencies[key] ??= []).add(latencyMs);
+    }
+
     final predicted = row['predicted'] as Map<String, dynamic>?;
     final groundTruth = row['ground_truth'] as Map<String, dynamic>;
     if (predicted == null || groundTruth['kcal'] == null) continue;
 
-    final key = '${row['arm']}__${row['model']}';
     final components = predicted['components'] as List? ?? [];
     final matched = components.isNotEmpty &&
         components.every((c) => (c as Map)['matched_reference_food'] != null);
@@ -1021,20 +1034,22 @@ void main() {
   }
 
   final buffer = StringBuffer('# Benchmark report\n\n');
-  buffer.writeln('| Arm | Model | N | MAPE kcal | MAE kcal | Bias (mean±sd) | matched_reference_food rate |');
-  buffer.writeln('|---|---|---|---|---|---|---|');
+  buffer.writeln('| Arm | Model | N | MAPE kcal | MAE kcal | Bias (mean±sd) | matched_reference_food rate | Latência média |');
+  buffer.writeln('|---|---|---|---|---|---|---|---|');
 
   for (final key in groups.keys.toList()..sort()) {
     final samples = groups[key]!;
     final parts = key.split('__');
     final (mean, sd) = _blandAltmanBias(samples);
     final matchRate = _matchRate(matchRates[key]!);
+    final avgLatencyMs = _average(latencies[key] ?? []);
     buffer.writeln(
       '| ${parts[0]} | ${parts[1]} | ${samples.length} | '
       '${_mape(samples).toStringAsFixed(1)}% | '
       '${_mae(samples).toStringAsFixed(1)} kcal | '
       '${mean.toStringAsFixed(1)}±${sd.toStringAsFixed(1)} | '
-      '${matchRate.toStringAsFixed(0)}% |',
+      '${matchRate.toStringAsFixed(0)}% | '
+      '${(avgLatencyMs / 1000).toStringAsFixed(1)}s |',
     );
   }
 
@@ -1044,6 +1059,9 @@ void main() {
 
 double _matchRate(List<bool> matches) =>
     matches.where((m) => m).length / matches.length * 100;
+
+double _average(List<int> values) =>
+    values.isEmpty ? 0 : values.reduce((a, b) => a + b) / values.length;
 ```
 
 - [ ] **Step 2: Run it**
@@ -1053,7 +1071,7 @@ dart run tool/compute_benchmark_metrics.dart
 cat benchmark_results/report.md
 ```
 
-Expected: a 4-row markdown table (baseline/grounded × 2 models), each with MAPE, MAE, Bland-Altman bias, and `matched_reference_food` coverage. Read the `grounded` rows' `matched_reference_food` rate with the Task-4/spec caveat in mind — SNAPMe/Nutrition5k are American-population datasets, so this run's coverage rate likely underestimates real coverage for Brazilian dishes.
+Expected: a 4-row markdown table (baseline/grounded × 2 models), each with MAPE, MAE, Bland-Altman bias, `matched_reference_food` coverage, and average per-call latency. Read the `grounded` rows' `matched_reference_food` rate with the Task-4/spec caveat in mind — SNAPMe/Nutrition5k are American-population datasets, so this run's coverage rate likely underestimates real coverage for Brazilian dishes. This table (including latency) is the source data for Task 8's README write-up — don't discard `benchmark_results/report.md` after this step.
 
 - [ ] **Step 3: Write the gate decision as a comment in the report**
 
@@ -1098,7 +1116,7 @@ to:
 const productionModel = 'gemini-3.1-flash-lite';
 ```
 
-Also update `CLAUDE.md`'s "AI" stack line and rate-limit note if the free-tier numbers differ (15 RPM / ~1,500 RPD for `gemini-3.1-flash-lite` vs the current ≤15 RPM / 1,000 RPD text).
+Also update `CLAUDE.md`'s "AI" stack line and rate-limit note if the free-tier numbers differ (15 RPM / ~1,500 RPD for `gemini-3.1-flash-lite` vs the current ≤15 RPM / 1,000 RPD text). Leave `README.md`'s "Tech stack" line for Task 8, which touches `README.md` as a whole.
 
 - [ ] **Step 2: If baseline wins on both models — do nothing to the prompt, but still resolve the model migration**
 
@@ -1126,6 +1144,85 @@ git commit -m "Promote benchmark-validated grounding and/or model to production"
 
 ---
 
+## Task 8: Document benchmark results and citations in README
+
+**Files:**
+- Modify: `README.md`
+
+**Interfaces:**
+- Consumes: `benchmark_results/report.md` (Task 6's real numbers) and Task 7's actual production decision (which prompt/model shipped).
+- Produces: a new subsection under `README.md`'s `## Features` (same pattern as the existing `### Weight trend: EMA smoothing + confidence-band projection` subsection at line 107), plus an updated `## Tech stack` AI line if the model changed.
+
+- [ ] **Step 1: Write the new README subsection**
+
+Insert, immediately after the existing `### Weight trend: EMA smoothing + confidence-band projection` subsection (before `## Tech stack`), a new subsection following the same voice/format as its neighbor:
+
+```markdown
+### Meal estimation accuracy: grounding Gemini with a nutrition reference table
+
+The Gemini prompt that estimates calories/macros from a meal photo used to convert
+estimated mass to energy entirely from the model's own parametric knowledge — no real
+nutrition data was ever in its context. We grounded that conversion step in a curated
+[TACO](https://github.com/brolesi/taco) (Tabela Brasileira de Composição de Alimentos)
+reference table injected directly into the prompt, and benchmarked the change — plus a
+model migration candidate — against public ground-truth datasets before shipping either
+change to production.
+
+<!-- TASK 8 STEP 1: replace this table with the literal contents of
+     benchmark_results/report.md's table (baseline vs. grounded, both models),
+     copied verbatim — do not re-derive or round differently than the report. -->
+
+| Arm | Model | N | MAPE kcal | MAE kcal | Bias (mean±sd) | matched_reference_food rate | Latência média |
+|---|---|---|---|---|---|---|---|
+| ... | ... | ... | ... | ... | ... | ... | ... |
+
+<!-- TASK 8 STEP 1: one sentence stating what actually shipped, e.g. "The grounded
+     prompt on gemini-3.1-flash-lite shipped to production — an N-point MAPE
+     improvement over the current baseline within the free tier." Pull this from
+     Task 7's actual diff/commit message, not from a hoped-for outcome. -->
+
+**Why grounding, not better prompting:** Vedovelli et al. (2026) benchmarked 40
+vision-language models against professional nutritionists on the Nutrition5k dataset and
+found prompt engineering (persona, chain-of-thought, few-shot) had no statistically
+significant effect on accuracy (p > 0.05 across 6 prompt variants), while model choice
+alone explained 99.6% of the performance variance — and identified VLM+database hybrid
+grounding as "a particularly promising direction" specifically for the mass→energy
+conversion step. Yan et al. (2025)'s DietAI24 confirmed the principle in practice: RAG
+grounding against the FNDDS nutrition database cut mean absolute error by 63% versus
+ungrounded estimation on real mixed dishes.
+
+**Literature:**
+- L. Vedovelli et al., "Model architecture dominates nutritional estimation accuracy in
+  vision-language systems," *Scientific Reports*, 2026.
+  [doi.org/10.1038/s41598-026-58755-w](https://doi.org/10.1038/s41598-026-58755-w)
+- R. Yan et al., "DietAI24 as a framework for comprehensive nutrition estimation using
+  multimodal large language models," *Communications Medicine*, 2025.
+  [doi.org/10.1038/s43856-025-01159-0](https://doi.org/10.1038/s43856-025-01159-0)
+- Benchmark ground truth: [Nutrition5k](https://github.com/google-research-datasets/Nutrition5k)
+  (Google Research, CC BY 4.0) and SNAPMe (USDA Ag Data Commons, CC BY 4.0).
+- Additional literature underpinning the existing uncertainty-interval calibration is
+  cited in [`docs/spec_diet_tracker_v2.md`](docs/spec_diet_tracker_v2.md) §4.
+```
+
+Fill in the two `<!-- TASK 8 -->`-marked placeholders with real content from `benchmark_results/report.md` and Task 7's commit before committing — an unfilled placeholder here is a plan failure, not an acceptable final state.
+
+- [ ] **Step 2: Update the Tech stack line if the model changed**
+
+If Task 7 changed `productionModel` to `gemini-3.1-flash-lite`, update `README.md`'s `## Tech stack` line (currently `- **AI:** Gemini 2.5 Flash-Lite via structured JSON output, called directly from the device`) to match. If the model didn't change, skip this step.
+
+- [ ] **Step 3: Proofread against the actual files**
+
+Confirm every number in the new README table matches `benchmark_results/report.md` exactly (no transcription drift), and that the "what shipped" sentence matches Task 7's actual commit, not the plan's speculative sub-cases.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add README.md
+git commit -m "Document KCAL grounding benchmark results and literature in README"
+```
+
+---
+
 ## Verification
 
 1. `flutter analyze` — must pass after every task, and especially after Task 3 and Task 7 where public symbols are renamed/added.
@@ -1133,3 +1230,4 @@ git commit -m "Promote benchmark-validated grounding and/or model to production"
 3. Task 5's dry-run smoke test (2 rows) is the first point actual API behavior across both prompt arms and both models is exercised end-to-end — treat it as a mandatory checkpoint, not optional.
 4. After Task 6, `benchmark_results/report.md` is the artifact that answers both backlog items #1 and #2 with real numbers — read it before writing Task 7's diff, don't assume the spec's hoped-for outcome.
 5. Task 7's manual smoke test on the emulator is the only step that touches the real production path end-to-end (`confirm_meal_screen.dart` → `estimateMeal` → Isar persistence) — run it before considering this plan done.
+6. Task 8's README table must be copied verbatim from `benchmark_results/report.md` — diff them by eye before committing.

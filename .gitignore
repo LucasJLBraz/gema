@@ -71,3 +71,7 @@ references/Papers/*.pdf
 
 # Contains a personal Semantic Scholar API key — never commit.
 .paper-rag.toml
+
+# Local benchmark working data — never commit third-party datasets or raw API dumps.
+benchmark_data/
+benchmark_results/
