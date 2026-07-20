@@ -60,3 +60,14 @@ android/key.properties
 
 # Isar core binary for local flutter test (downloaded on demand)
 libisar.so
+
+.rag_index/
+
+.worktrees/
+
+# Downloaded third-party paper PDFs (paper-rag) — keep only the .md citation
+# metadata under version control, not the copyrighted PDF content.
+references/Papers/*.pdf
+
+# Contains a personal Semantic Scholar API key — never commit.
+.paper-rag.toml
