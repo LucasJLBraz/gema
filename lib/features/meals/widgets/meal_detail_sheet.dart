@@ -93,7 +93,7 @@ class MealDetailSheet extends ConsumerWidget {
                         File(meal.photoPath!),
                         width: double.infinity,
                         fit: BoxFit.contain,
-                        frameBuilder: (_, child, frame, __) => frame == null
+                        frameBuilder: (_, child, frame, _) => frame == null
                             ? const SizedBox(
                                 height: 120,
                                 child: Center(

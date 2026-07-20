@@ -28,23 +28,23 @@ GoRouter router(Ref ref) {
     routes: [
       GoRoute(
         path: '/onboarding',
-        builder: (_, __) => const OnboardingScreen(),
+        builder: (_, _) => const OnboardingScreen(),
       ),
       ShellRoute(
-        builder: (_, __, child) => MainShell(child: child),
+        builder: (_, _, child) => MainShell(child: child),
         routes: [
-          GoRoute(path: '/home', builder: (_, __) => const SizedBox.shrink()),
+          GoRoute(path: '/home', builder: (_, _) => const SizedBox.shrink()),
           GoRoute(
             path: '/history',
-            builder: (_, __) => const SizedBox.shrink(),
+            builder: (_, _) => const SizedBox.shrink(),
           ),
           GoRoute(
             path: '/analytics',
-            builder: (_, __) => const SizedBox.shrink(),
+            builder: (_, _) => const SizedBox.shrink(),
           ),
         ],
       ),
-      GoRoute(path: '/capture', builder: (_, __) => const CaptureScreen()),
+      GoRoute(path: '/capture', builder: (_, _) => const CaptureScreen()),
       GoRoute(
         path: '/confirm',
         builder: (_, state) {
@@ -52,8 +52,8 @@ GoRouter router(Ref ref) {
           return ConfirmMealScreen(mealId: mealId);
         },
       ),
-      GoRoute(path: '/barcode', builder: (_, __) => const BarcodeScreen()),
-      GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: '/barcode', builder: (_, _) => const BarcodeScreen()),
+      GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
     ],
   );
 }

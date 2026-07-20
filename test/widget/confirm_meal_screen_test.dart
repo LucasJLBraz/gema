@@ -41,11 +41,11 @@ void main() {
       routes: [
         GoRoute(
           path: '/confirm',
-          builder: (_, __) => const ConfirmMealScreen(mealId: _mealId),
+          builder: (_, _) => const ConfirmMealScreen(mealId: _mealId),
         ),
         GoRoute(
           path: '/home',
-          builder: (_, __) => const Scaffold(body: Text('HOME')),
+          builder: (_, _) => const Scaffold(body: Text('HOME')),
         ),
       ],
     );
