@@ -59,8 +59,9 @@ class _LogWeightDialogState extends ConsumerState<LogWeightDialog> {
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Informe o peso';
                 final val = double.tryParse(v.replaceAll(',', '.'));
-                if (val == null || val < 20 || val > 500)
+                if (val == null || val < 20 || val > 500) {
                   return 'Peso inválido';
+                }
                 return null;
               },
             ),
