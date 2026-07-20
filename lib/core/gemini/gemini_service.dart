@@ -12,7 +12,7 @@ const _model = 'gemini-2.5-flash-lite';
 const _baseUrl =
     'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
 
-final _storage = FlutterSecureStorage();
+const _storage = FlutterSecureStorage();
 
 Future<String?> loadApiKey() => _storage.read(key: _apiKeyStorageKey);
 
@@ -161,10 +161,11 @@ Future<GeminiResult> estimateMeal({
 Future<List<int>> _compressImage(String path) async {
   final bytes = await File(path).readAsBytes();
   final original = img.decodeImage(bytes);
-  if (original == null)
+  if (original == null) {
     throw const GeminiApiException('Could not decode image');
+  }
 
-  final maxSide = 800;
+  const maxSide = 800;
   final resized = original.width > original.height
       ? img.copyResize(original, width: maxSide)
       : img.copyResize(original, height: maxSide);

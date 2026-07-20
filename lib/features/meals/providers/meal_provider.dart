@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -186,9 +189,30 @@ class MealQueueNotifier extends _$MealQueueNotifier {
   }
 
   Future<void> deleteMeal(int mealId) async {
+    final meal = await isar.meals.get(mealId);
+    final photoPath = meal?.photoPath;
     await isar.writeTxn(() async {
+      if (meal != null) {
+        await meal.components.load();
+        final componentIds = meal.components
+            .map((component) => component.id)
+            .toList();
+        if (componentIds.isNotEmpty) {
+          await isar.mealComponents.deleteAll(componentIds);
+        }
+      }
       await isar.meals.delete(mealId);
     });
+    if (photoPath != null) {
+      try {
+        final photoFile = File(photoPath);
+        if (await photoFile.exists()) {
+          await photoFile.delete();
+        }
+      } catch (e) {
+        debugPrint('Failed to delete photo file: $e');
+      }
+    }
     ref.invalidateSelf();
   }
 }
