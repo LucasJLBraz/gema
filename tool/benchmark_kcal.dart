@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:gema/core/gemini/gemini_service.dart';
-// Read via dart:io + the pure parser rather than
-// nutrition_reference_loader.dart's rootBundle-based loadTacoReference,
-// which requires a Flutter engine unavailable under plain `dart run`.
-import 'package:gema/core/gemini/nutrition_reference.dart';
+// nutrition_reference.dart (parseTacoReferenceJson/formatReferenceTableBlock)
+// is not needed for the current arms list, which doesn't use the TACO
+// table. Re-add it (reading assets/data/taco_reference.json via dart:io,
+// not nutrition_reference_loader.dart's rootBundle-based loadTacoReference,
+// which needs a Flutter engine unavailable under plain `dart run`) if a
+// future run needs 'grounded' or 'combined' again.
 
 // gemini-2.5-flash-lite (productionModel) is deliberately excluded from the
 // full run: a smoke test with a freshly-created API key got HTTP 404 "This
@@ -43,24 +45,18 @@ Future<void> main() async {
     exit(1);
   }
 
-  // 'baseline', 'grounded', 'no_cot', and 'with_scale' already ran in prior
-  // invocations of this script (results are in
+  // 'baseline', 'grounded', 'no_cot', 'with_scale', and 'combined' already
+  // ran in prior invocations of this script (results are in
   // benchmark_results/raw_results.jsonl, appended to below rather than
-  // overwritten). This run adds 'combined' — per explicit user decision,
-  // no_cot's style (strongest individual result) merged with grounded's
-  // TACO table and with_scale's scale detection, all in one prompt — to get
-  // real evidence on the exact combination being considered for
-  // production, not just each ingredient in isolation.
-  final referenceJson =
-      File('assets/data/taco_reference.json').readAsStringSync();
-  final reference = parseTacoReferenceJson(referenceJson);
-  final referenceBlock = formatReferenceTableBlock(reference);
-
+  // overwritten). 'combined' (no_cot style + TACO + scale) unexpectedly
+  // erased no_cot's gain (t went from 2.08 to -0.08) -- this run tests
+  // whether dropping the TACO table specifically (keeping no_cot's style +
+  // scale) recovers it.
   final arms = [
-    _Arm(
-      'combined',
-      systemPromptCombined(referenceBlock),
-      responseSchemaCombined,
+    const _Arm(
+      'no_cot_with_scale',
+      systemPromptNoCotWithScale,
+      responseSchemaWithScale,
     ),
   ];
 

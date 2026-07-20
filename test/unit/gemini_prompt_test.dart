@@ -114,4 +114,14 @@ void main() {
       );
     });
   });
+
+  group('systemPromptNoCotWithScale', () {
+    test('has no numbered CoT steps and no TACO reference instruction', () {
+      expect(systemPromptNoCotWithScale, isNot(contains('1. Liste os componentes')));
+      expect(systemPromptNoCotWithScale, isNot(contains('TABELA DE REFERÊNCIA')));
+      expect(systemPromptNoCotWithScale, isNot(contains('matched_reference_food')));
+      expect(systemPromptNoCotWithScale, contains('balança'));
+      expect(systemPromptNoCotWithScale, contains('scale_reading_used'));
+    });
+  });
 }
