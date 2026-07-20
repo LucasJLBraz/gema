@@ -46,22 +46,38 @@ void main() async {
     ).writeAsBytesSync(response.bodyBytes);
   }
 
-  final csv = StringBuffer(
-    'sample_id,dataset,image_path,weight_g,kcal,protein_g,carb_g,fat_g\n',
-  );
+  final newRows = <String>[];
   for (final row in sample) {
     final dishId = row['dish_id']!;
     final imagePath = '${imagesDir.path}/$dishId.png';
     if (!File(imagePath).existsSync()) continue;
-    csv.writeln(
+    newRows.add(
       'n5k_$dishId,nutrition5k,$imagePath,'
       '${row['total_mass']},${row['total_calories']},'
       '${row['total_protein']},${row['total_carb']},${row['total_fat']}',
     );
   }
 
-  File('benchmark_data/ground_truth.csv').writeAsStringSync(csv.toString());
+  // Re-runnable in any order relative to prepare_snapme_sample.dart: drop
+  // any previously-written n5k_ rows before appending the fresh ones, and
+  // preserve rows from other datasets (e.g. snapme_*) instead of
+  // unconditionally overwriting the whole file — an earlier version of this
+  // script did a plain writeAsStringSync() here, which would silently
+  // destroy SNAPMe's contribution to ground_truth.csv if this script were
+  // (re-)run after prepare_snapme_sample.dart.
+  const header = 'sample_id,dataset,image_path,weight_g,kcal,protein_g,carb_g,fat_g';
+  final groundTruthFile = File('benchmark_data/ground_truth.csv');
+  final keptLines = groundTruthFile.existsSync()
+      ? groundTruthFile
+          .readAsLinesSync()
+          .where((l) => l.isNotEmpty && l != header && !l.startsWith('n5k_'))
+          .toList()
+      : <String>[];
+
+  groundTruthFile.writeAsStringSync(
+    '${[header, ...newRows, ...keptLines].join('\n')}\n',
+  );
   stderr.writeln(
-    'Wrote ${sample.length} candidate rows (some may have been skipped on download failure).',
+    'Wrote ${newRows.length} Nutrition5k rows (some of the $_sampleSize candidates may have been skipped on download failure).',
   );
 }
