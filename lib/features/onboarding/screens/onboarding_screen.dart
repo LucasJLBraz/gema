@@ -193,15 +193,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               child: SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saving || !_canAdvance() ? null : _next,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_page < 3 ? 'Continuar' : 'Começar'),
+                child: ListenableBuilder(
+                  listenable: Listenable.merge([
+                    _weightCtrl,
+                    _heightCtrl,
+                    _ageCtrl,
+                    _deficitCtrl,
+                    _apiKeyCtrl,
+                  ]),
+                  builder: (context, _) => ElevatedButton(
+                    onPressed: _saving || !_canAdvance() ? null : _next,
+                    child: _saving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_page < 3 ? 'Continuar' : 'Começar'),
+                  ),
                 ),
               ),
             ),
@@ -276,11 +285,29 @@ class _StepPhysical extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 28),
-          _field(context, weightCtrl, 'Peso atual (kg)', TextInputType.number),
+          _field(
+            context,
+            weightCtrl,
+            'Peso atual (kg)',
+            TextInputType.number,
+            key: const Key('onboarding-weight-field'),
+          ),
           const SizedBox(height: 14),
-          _field(context, heightCtrl, 'Altura (cm)', TextInputType.number),
+          _field(
+            context,
+            heightCtrl,
+            'Altura (cm)',
+            TextInputType.number,
+            key: const Key('onboarding-height-field'),
+          ),
           const SizedBox(height: 14),
-          _field(context, ageCtrl, 'Idade', TextInputType.number),
+          _field(
+            context,
+            ageCtrl,
+            'Idade',
+            TextInputType.number,
+            key: const Key('onboarding-age-field'),
+          ),
           const SizedBox(height: 20),
           Text('Sexo biológico', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 10),
@@ -403,17 +430,25 @@ class _StepGoal extends StatelessWidget {
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 10),
-          ..._activityLabels.map(
-            (pair) => RadioListTile<double>(
-              title: Text(pair.$2),
-              subtitle: Text(
-                '×${pair.$1}',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              value: pair.$1,
-              groupValue: activityFactor,
-              onChanged: (v) => v != null ? onActivityChanged(v) : null,
-              dense: true,
+          RadioGroup<double>(
+            groupValue: activityFactor,
+            onChanged: (v) {
+              if (v != null) onActivityChanged(v);
+            },
+            child: Column(
+              children: [
+                ..._activityLabels.map(
+                  (pair) => RadioListTile<double>(
+                    title: Text(pair.$2),
+                    subtitle: Text(
+                      '×${pair.$1}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    value: pair.$1,
+                    dense: true,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -513,6 +548,7 @@ class _StepConfig extends StatelessWidget {
           const SizedBox(height: 20),
 
           TextField(
+            key: const Key('onboarding-api-key-field'),
             controller: apiKeyCtrl,
             obscureText: !visible,
             autocorrect: false,
@@ -588,9 +624,11 @@ Widget _field(
   BuildContext context,
   TextEditingController ctrl,
   String label,
-  TextInputType type,
-) {
+  TextInputType type, {
+  Key? key,
+}) {
   return TextField(
+    key: key,
     controller: ctrl,
     keyboardType: type,
     decoration: InputDecoration(labelText: label),

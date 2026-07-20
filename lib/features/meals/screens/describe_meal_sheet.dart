@@ -53,9 +53,11 @@ class _DescribeMealSheetState extends ConsumerState<DescribeMealSheet> {
             if (r.finalResult) _listening = false;
           });
         },
-        listenFor: const Duration(minutes: 2),
-        pauseFor: const Duration(seconds: 30),
-        localeId: 'pt_BR',
+        listenOptions: SpeechListenOptions(
+          listenFor: const Duration(minutes: 2),
+          pauseFor: const Duration(seconds: 30),
+          localeId: 'pt_BR',
+        ),
       );
     }
   }

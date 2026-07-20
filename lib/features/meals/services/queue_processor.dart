@@ -76,7 +76,7 @@ class QueueProcessor {
           await _applyResult(meal, result);
 
           // Spec: ≥ 4–6 s between Gemini calls
-          await Future.delayed(const Duration(seconds: 5));
+          await Future<void>.delayed(const Duration(seconds: 5));
         } on gemini.GeminiRateLimitException catch (e) {
           debugPrint(
             '[QueueProcessor] rate-limited, waiting ${e.retryAfterSeconds}s',
@@ -89,7 +89,7 @@ class QueueProcessor {
               ..updatedAt = DateTime.now();
             await isar.meals.put(meal);
           });
-          await Future.delayed(Duration(seconds: e.retryAfterSeconds));
+          await Future<void>.delayed(Duration(seconds: e.retryAfterSeconds));
         } catch (e) {
           debugPrint('[QueueProcessor] error for meal ${meal.id}: $e');
           await isar.writeTxn(() async {
