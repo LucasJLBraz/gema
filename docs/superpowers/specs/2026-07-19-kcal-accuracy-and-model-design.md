@@ -34,15 +34,18 @@ RAG (GPT Vision → busca vetorial sobre a base FNDDS, 5624 alimentos, via LangC
 
 Diante desses achados, o escopo foi restrito a: (1) escolha de modelo Gemini via benchmark, não suposição a priori; (2) grounding da conversão massa→kcal via tabela de referência. **Estimativa de porção/volume fica documentada como limitação conhecida, sem solução barata disponível** — melhorá-la de verdade exigiria um item de backlog separado, futuro, de pipeline de visão computacional geométrica (fora de escopo aqui).
 
-### Gemini — pricing e rate limits (julho/2026)
+### Gemini — modelos, pricing e prazo de migração (julho/2026)
 
-| Modelo | Preço input/output (por 1M tokens) | Tier grátis |
-|---|---|---|
-| Gemini 2.5 Flash-Lite (atual) | $0.10 / $0.40 | 5–15 RPM, ~1000 RPD |
-| Gemini 2.5 Flash | $0.30 / $2.50 | 5–15 RPM, ~1000 RPD |
-| Gemini 2.5 Pro | $1.25–2.50 / $10–15 | sem tier grátis desde abril/2026 |
+`gemini-2.5-flash-lite` (modelo atual do GEMA) segue disponível, mas tem **shutdown oficial confirmado para 16/out/2026** — fonte primária: [ai.google.dev/gemini-api/docs/deprecations](https://ai.google.dev/gemini-api/docs/deprecations) (página consultada em 19/jul/2026, com data de atualização 2/jul/2026). O substituto recomendado pelo próprio Google é `gemini-3.1-flash-lite`, em disponibilidade geral desde maio/2026.
 
-Fonte: busca web em [ai.google.dev/gemini-api/docs/pricing](https://ai.google.dev/gemini-api/docs/pricing) e agregadores de pricing (jul/2026). Pro está descartado por não ter tier grátis, o que quebraria a premissa "grátis para o usuário único" do app hoje.
+| Modelo | Preço input/output (por 1M tokens) | Tier grátis | Situação |
+|---|---|---|---|
+| `gemini-2.5-flash-lite` (atual) | $0.10 / $0.40 | ~15 RPM, ~1.000 RPD | Shutdown confirmado 16/out/2026 |
+| `gemini-3.1-flash-lite` | $0.25 / $1.50 | 15 RPM, ~1.500 RPD | Sucessor oficial recomendado, GA desde mai/2026 |
+| `gemini-3.5-flash` | $1.50 / $9.00 | tier grátis via AI Studio para uso não-produtivo; disponibilidade para tráfego de API de produção não confirmada | Fora de escopo — sem justificativa de custo para um app grátis de usuário único |
+| `gemini-2.5-pro` / `gemini-3.1-pro` | pago | sem tier grátis desde abril/2026 | Fora de escopo |
+
+Isso dá um prazo concreto e independente do resultado do benchmark: a decisão e a migração do item #2 precisam estar concluídas antes de 16/out/2026.
 
 ### Fonte de dados nutricional: TACO
 
@@ -66,16 +69,18 @@ Avaliadas TACO (UNICAMP, ~600 alimentos, dados abertos em JSON/CSV em repositór
 
 ### 3. Processo de decisão do modelo (item #2)
 
-Não decidir a priori qual modelo usar em produção. Usar o mesmo benchmark da seção 4 para comparar `gemini-2.5-flash-lite` (atual, grátis) vs `gemini-2.5-flash` (pago, ~3–6× mais caro em output) rodando o **mesmo** prompt grounded, e decidir com base no ganho de acurácia observado vs. o custo real projetado para o volume de uso do app. `gemini-2.5-pro` fica fora da comparação por não ter tier grátis.
+Não decidir a priori qual modelo usar em produção. Usar o mesmo benchmark da seção 4 para comparar `gemini-2.5-flash-lite` (atual, grátis, mas com shutdown em 16/out/2026) vs `gemini-3.1-flash-lite` (sucessor oficial recomendado pelo Google, também grátis) rodando o **mesmo** prompt grounded, e decidir com base no ganho de acurácia observado. Como os dois candidatos são gratuitos, a decisão é dominada por acurácia, não por custo — `gemini-3.5-flash` e as variantes Pro ficam fora da comparação (pagos, sem justificativa de custo para um app grátis de usuário único). A migração precisa estar concluída antes do shutdown de 16/out/2026, qualquer que seja o resultado do benchmark.
 
 ### 4. Benchmark de avaliação
 
-Não existe conjunto de ground truth hoje — precisa ser criado como parte da implementação.
+Não existe conjunto de ground truth próprio, e criar um manualmente (pesar refeições reais em balança) foi descartado para evitar esse trabalho — usar datasets públicos existentes:
 
-- **Protocolo:** N=30–50 refeições reais, fotografadas pela mesma pipeline de captura do app (câmera ou galeria, como descrito em `capture_screen.dart`), pesadas em balança de cozinha antes/depois de cada componente.
-- **Fonte de referência:** calculada via TACO — com uma ressalva de risco importante: usar a mesma fonte para grounding do prompt e para ground-truth do benchmark pode inflar artificialmente a vantagem da abordagem proposta (comparando contra si mesma). Por isso, incluir também um subconjunto (ex. 8–10 refeições) com referência independente de rótulo nutricional real de produto embalado, para um teste mais justo.
+- **SNAPMe** (USDA Ag Data Commons): 3.311 fotos reais tiradas por celular, condição não controlada (iluminação/enquadramento casuais — próximo do uso real do GEMA), vinculadas a registros ASA24 + perfil de 65 nutrientes via FNDDS. Fonte primária do benchmark.
+- **Nutrition5k** ([google-research-datasets/Nutrition5k](https://github.com/google-research-datasets/Nutrition5k), CC BY 4.0): 5.006 pratos com massa/kcal/macros medidos por rig de escaneamento — maior escala, usado como checagem secundária (fotos em condição de laboratório, menos representativas do uso real via celular).
+- **Efeito colateral favorável:** como o ground truth vem do FNDDS (base americana) e o grounding do prompt usa TACO (base brasileira), fonte de verdade e fonte de grounding são independentes — elimina o risco de viés de auto-comparação que existiria se ambas viessem da mesma tabela.
+- **Ressalva conhecida:** os dois datasets são de população/pratos americanos — a cobertura da TACO para esses pratos tende a ser pior do que seria para pratos brasileiros reais de usuários do GEMA. A taxa de `matched_reference_food != null` medida aqui provavelmente **subestima** a cobertura esperada em produção; ver "Riscos e limitações".
 - **Métricas:** MAPE e MAE de peso e kcal (mesmas métricas já citadas em `docs/spec_diet_tracker_v2.md` §4, para comparabilidade direta com a literatura), bias sistemático via Bland-Altman, e taxa de `matched_reference_food != null` (proxy de cobertura da tabela embutida).
-- **Matriz de comparação:** prompt atual (produção, sem tabela) × prompt grounded (proposto) × 2 modelos (Flash-Lite, Flash) = 4 combinações rodadas sobre o mesmo conjunto de N fotos.
+- **Matriz de comparação:** prompt atual (produção, sem tabela) × prompt grounded (proposto) × 2 modelos (`gemini-2.5-flash-lite`, `gemini-3.1-flash-lite`) = 4 combinações, rodadas sobre a amostra do SNAPMe (+ checagem no Nutrition5k).
 
 ### 5. Critério de gate e rollout
 
@@ -86,12 +91,16 @@ Não existe conjunto de ground truth hoje — precisa ser criado como parte da i
 ## Riscos e limitações conhecidas
 
 - Estimativa de porção/volume permanece sem solução barata — item de backlog separado, futuro, se a precisão desse componente específico se tornar prioridade (exigiria pipeline de CV geométrica, não apenas prompt/dados).
-- Viés de auto-comparação no benchmark (mesma fonte para grounding e ground-truth) mitigado pelo subconjunto de referência independente, mas não eliminado — o plano de implementação deve tratar os dois resultados separadamente, não como uma média única.
-- Cobertura da tabela TACO (~600 itens, subconjunto curado ainda menor) pode ser insuficiente para pratos compostos ou muito regionais — taxa de `matched_reference_food == null` no benchmark é o sinal a observar; se alta, a evolução natural é o lookup determinístico local (Isar, mesmo padrão de `lib/features/products/`) como camada adicional, não implementado neste ciclo.
-- Licença de uso dos dados da TACO precisa ser confirmada no repositório específico escolhido antes da implementação — não verificada nesta sessão de pesquisa.
+- Benchmark usa datasets públicos de população/pratos americanos (SNAPMe, Nutrition5k) — a cobertura da TACO nesses pratos provavelmente subestima a cobertura real para pratos brasileiros de usuários do GEMA. Ler a taxa de `matched_reference_food == null` do benchmark com essa ressalva, não como número final de produção.
+- Cobertura da tabela TACO (~600 itens, subconjunto curado ainda menor) pode ser insuficiente para pratos compostos ou muito regionais — se a taxa de `null` for alta mesmo considerando a ressalva acima, a evolução natural é o lookup determinístico local (Isar, mesmo padrão de `lib/features/products/`) como camada adicional, não implementado neste ciclo.
+- Licença de uso dos dados da TACO precisa ser confirmada no repositório específico escolhido antes da implementação — não verificada nesta sessão de pesquisa. Licença do SNAPMe (USDA Ag Data Commons) e do Nutrition5k (CC BY 4.0, já confirmada) também devem ser checadas quanto a uso local de benchmark (não redistribuição).
+- **Prazo:** `gemini-2.5-flash-lite` tem shutdown oficial confirmado em 16/out/2026 — a decisão e migração do item #2 precisam estar implementadas antes dessa data, independente do resultado de acurácia do benchmark.
 
 ## Referências
 
 - `dietai24_2025` — Yan et al. 2025, DietAI24, *Communications Medicine* (indexado em `references/Papers/`).
 - `vedovelli_model_dominates_2026` — Vedovelli et al. 2026, *Scientific Reports* (indexado em `references/Papers/`).
 - PMC12513282, arXiv 2601.04491, MDPI Nutrients 17(4):607, PMC12655113 — já citados em `docs/spec_diet_tracker_v2.md` §4.
+- [Nutrition5k](https://github.com/google-research-datasets/Nutrition5k) — Google Research, CC BY 4.0.
+- SNAPMe — USDA Ag Data Commons, benchmark de fotos reais de celular ligadas a registros ASA24/FNDDS.
+- [Gemini API — Deprecations](https://ai.google.dev/gemini-api/docs/deprecations) — fonte primária das datas de shutdown/substituição de modelo (consultada 19/jul/2026).

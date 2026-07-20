@@ -57,3 +57,14 @@ android/key.properties
 # Local Isar database files (created at runtime, never part of the repo)
 *.isar
 *.isar.lock
+
+.rag_index/
+
+.worktrees/
+
+# Downloaded third-party paper PDFs (paper-rag) — keep only the .md citation
+# metadata under version control, not the copyrighted PDF content.
+references/Papers/*.pdf
+
+# Contains a personal Semantic Scholar API key — never commit.
+.paper-rag.toml
