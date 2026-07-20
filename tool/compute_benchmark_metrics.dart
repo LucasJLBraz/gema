@@ -30,19 +30,21 @@ double _mae(List<_Sample> samples) {
   return (mean, sqrt(variance));
 }
 
-/// Paired per-sample comparison (baseline vs. grounded, same sample_id, same
-/// model) — added because aggregate MAPE is known to be outlier-sensitive
-/// under high-variance errors (confirmed on the real run: Bland-Altman SDs
-/// of ~150 kcal against a ~105 kcal MAE indicate a heavy-tailed error
-/// distribution), so an aggregate MAPE improvement can look real while the
-/// underlying per-sample wins are close to a coin flip. A paired t-test is
-/// the right tool here specifically because both arms are evaluated on the
-/// *same* samples (not independent groups), which is exactly this design.
+/// Paired per-sample comparison (challenger arm vs. baseline, same
+/// sample_id, same model) — added because aggregate MAPE is known to be
+/// outlier-sensitive under high-variance errors (confirmed on the real run:
+/// Bland-Altman SDs of ~150 kcal against a ~105 kcal MAE indicate a
+/// heavy-tailed error distribution), so an aggregate MAPE improvement can
+/// look real while the underlying per-sample wins are close to a coin flip.
+/// A paired t-test is the right tool here specifically because every arm is
+/// evaluated on the *same* samples (not independent groups), which is
+/// exactly this design. Generalized to compare any non-baseline arm against
+/// baseline (not just "grounded") once more experimental arms were added.
 class _PairedResult {
-  _PairedResult(this.n, this.groundedWins, this.baselineWins, this.ties,
+  _PairedResult(this.n, this.challengerWins, this.baselineWins, this.ties,
       this.meanDiff, this.sdDiff, this.tStat);
   final int n;
-  final int groundedWins;
+  final int challengerWins;
   final int baselineWins;
   final int ties;
   final double meanDiff;
@@ -52,24 +54,26 @@ class _PairedResult {
 
 _PairedResult? _pairedComparison(
   Map<String, Map<String, _Sample>> byIdThenArm,
+  String challengerArm,
 ) {
   final diffs = <double>[];
-  var groundedWins = 0;
+  var challengerWins = 0;
   var baselineWins = 0;
   var ties = 0;
 
   for (final arms in byIdThenArm.values) {
     final baseline = arms['baseline'];
-    final grounded = arms['grounded'];
-    if (baseline == null || grounded == null) continue;
+    final challenger = arms[challengerArm];
+    if (baseline == null || challenger == null) continue;
 
     final baselineErr = (baseline.predictedKcal - baseline.groundTruthKcal).abs();
-    final groundedErr = (grounded.predictedKcal - grounded.groundTruthKcal).abs();
-    diffs.add(baselineErr - groundedErr); // positive => grounded closer
+    final challengerErr =
+        (challenger.predictedKcal - challenger.groundTruthKcal).abs();
+    diffs.add(baselineErr - challengerErr); // positive => challenger closer
 
-    if (groundedErr < baselineErr) {
-      groundedWins++;
-    } else if (baselineErr < groundedErr) {
+    if (challengerErr < baselineErr) {
+      challengerWins++;
+    } else if (baselineErr < challengerErr) {
       baselineWins++;
     } else {
       ties++;
@@ -86,7 +90,8 @@ _PairedResult? _pairedComparison(
   final standardError = sdDiff / sqrt(n);
   final tStat = standardError == 0 ? 0.0 : meanDiff / standardError;
 
-  return _PairedResult(n, groundedWins, baselineWins, ties, meanDiff, sdDiff, tStat);
+  return _PairedResult(
+      n, challengerWins, baselineWins, ties, meanDiff, sdDiff, tStat);
 }
 
 void main() {
@@ -152,37 +157,46 @@ void main() {
   }
 
   buffer.writeln();
-  buffer.writeln('## Paired comparison (grounded vs. baseline, same samples)');
+  buffer.writeln('## Paired comparisons (challenger arm vs. baseline, same samples)');
   buffer.writeln();
   buffer.writeln(
     'Aggregate MAPE/MAE can look improved even when the underlying '
     'per-sample predictions are not reliably better, if a few outliers '
     'dominate the average — the wide Bland-Altman SDs above are a signal '
-    'that may be happening here. This table compares grounded vs. baseline '
-    'on the exact same 100 samples per model, which a plain aggregate '
-    'MAPE comparison cannot do.',
+    'that may be happening here. This table compares each non-baseline arm '
+    'against baseline on the exact same 100 samples per model, which a '
+    'plain aggregate MAPE comparison cannot do.',
   );
   buffer.writeln();
-  buffer.writeln('| Model | N pairs | Grounded wins | Baseline wins | Ties | Mean paired Δ (kcal) | t-stat |');
-  buffer.writeln('|---|---|---|---|---|---|---|');
+  buffer.writeln('| Challenger arm | Model | N pairs | Challenger wins | Baseline wins | Ties | Mean paired Δ (kcal) | t-stat |');
+  buffer.writeln('|---|---|---|---|---|---|---|---|');
+
+  final challengerArms = groups.keys
+      .map((key) => key.split('__')[0])
+      .where((arm) => arm != 'baseline')
+      .toSet()
+      .toList()
+    ..sort();
 
   for (final model in byModelThenIdThenArm.keys.toList()..sort()) {
-    final result = _pairedComparison(byModelThenIdThenArm[model]!);
-    if (result == null) continue;
-    buffer.writeln(
-      '| $model | ${result.n} | ${result.groundedWins} '
-      '(${(result.groundedWins / result.n * 100).toStringAsFixed(0)}%) | '
-      '${result.baselineWins} '
-      '(${(result.baselineWins / result.n * 100).toStringAsFixed(0)}%) | '
-      '${result.ties} | ${result.meanDiff.toStringAsFixed(1)} | '
-      '${result.tStat.toStringAsFixed(2)} |',
-    );
+    for (final challengerArm in challengerArms) {
+      final result = _pairedComparison(byModelThenIdThenArm[model]!, challengerArm);
+      if (result == null) continue;
+      buffer.writeln(
+        '| $challengerArm | $model | ${result.n} | ${result.challengerWins} '
+        '(${(result.challengerWins / result.n * 100).toStringAsFixed(0)}%) | '
+        '${result.baselineWins} '
+        '(${(result.baselineWins / result.n * 100).toStringAsFixed(0)}%) | '
+        '${result.ties} | ${result.meanDiff.toStringAsFixed(1)} | '
+        '${result.tStat.toStringAsFixed(2)} |',
+      );
+    }
   }
   buffer.writeln();
   buffer.writeln(
     '(|t| ≳ 1.98 is roughly the p<0.05 threshold for n≈100 paired samples; '
-    'positive mean Δ means grounded\'s per-sample error was smaller on '
-    'average.)',
+    'positive mean Δ means the challenger arm\'s per-sample error was '
+    'smaller than baseline\'s on average.)',
   );
 
   File('benchmark_results/report.md').writeAsStringSync(buffer.toString());
