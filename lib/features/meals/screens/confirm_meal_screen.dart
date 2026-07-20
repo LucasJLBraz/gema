@@ -148,6 +148,11 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
     context.go('/home');
   }
 
+  Future<void> _discardAndExit() async {
+    await ref.read(mealQueueNotifierProvider.notifier).deleteMeal(widget.mealId);
+    if (mounted) context.go('/home');
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -187,15 +192,21 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
       } catch (_) {}
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Confirmar refeição'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.go('/home'),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _discardAndExit();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Confirmar refeição'),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: _discardAndExit,
+          ),
         ),
-      ),
-      body: SafeArea(
+        body: SafeArea(
         child: meal == null
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
@@ -490,6 +501,7 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
                   ],
                 ),
               ),
+        ),
       ),
     );
   }
