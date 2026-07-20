@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:isar/isar.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -186,6 +188,11 @@ class MealQueueNotifier extends _$MealQueueNotifier {
   }
 
   Future<void> deleteMeal(int mealId) async {
+    final meal = await isar.meals.get(mealId);
+    if (meal?.photoPath != null) {
+      final photoFile = File(meal!.photoPath!);
+      if (await photoFile.exists()) await photoFile.delete();
+    }
     await isar.writeTxn(() async {
       await isar.meals.delete(mealId);
     });
