@@ -48,9 +48,12 @@ jobs:
         run: flutter build apk --release
 
       - name: Rename artifact
+        # Fixed filename (no commit SHA) so each build's asset overwrites the
+        # previous one on the "latest" release instead of piling up — the
+        # commit each APK was built from is in the release name/body instead.
         run: |
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-release.apk "dist/gema-${GITHUB_SHA::7}.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk dist/gema-latest-debug.apk
 
       - name: Publish "latest" release
         uses: softprops/action-gh-release@v3
@@ -64,4 +67,4 @@ jobs:
             for sideloading during early development. See [CHANGELOG via commit log](https://github.com/${{ github.repository }}/commits/main).
           prerelease: true
           make_latest: true
-          files: dist/gema-*.apk
+          files: dist/gema-latest-debug.apk
