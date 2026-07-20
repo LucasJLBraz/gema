@@ -37,7 +37,7 @@ dependencies:
   timezone: ^0.9.4
 
   # Connectivity
-  connectivity_plus: ^6.0.5
+  connectivity_plus: ^7.3.0
 
   # HTTP (Gemini API + Open Food Facts)
   http: ^1.2.2
