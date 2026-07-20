@@ -46,7 +46,7 @@ dependencies:
   go_router: ^17.3.0
 
   # Data export
-  share_plus: ^10.0.0
+  share_plus: ^13.2.1
 
   # Gallery picker
   image_picker: ^1.2.3
