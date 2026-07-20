@@ -6,7 +6,7 @@ part of 'water_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$todayWaterMlHash() => r'c14bde3b858a7782bb7efe849dd2ad05108b3423';
+String _$todayWaterMlHash() => r'79147a6236dc157e0b8226a768e09d16dedfed38';
 
 /// See also [TodayWaterMl].
 @ProviderFor(TodayWaterMl)

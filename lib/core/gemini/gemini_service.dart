@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 
 const _apiKeyStorageKey = 'gemini_api_key';
-const _model = 'gemini-2.5-flash-lite-preview-06-17';
+const _model = 'gemini-2.5-flash-lite';
 const _baseUrl =
     'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
 
@@ -22,7 +23,9 @@ Future<void> deleteApiKey() => _storage.delete(key: _apiKeyStorageKey);
 
 class GeminiResult {
   const GeminiResult({
+    required this.mealName,
     required this.mealSummary,
+    required this.mealEmoji,
     required this.aiConfidence,
     required this.scaleReferenceFound,
     required this.kcalMin,
@@ -43,7 +46,9 @@ class GeminiResult {
     required this.assumptions,
   });
 
+  final String mealName;
   final String mealSummary;
+  final String mealEmoji;
   final String aiConfidence;
   final bool scaleReferenceFound;
   final int kcalMin;
@@ -75,17 +80,33 @@ class GeminiApiException implements Exception {
 }
 
 Future<GeminiResult> estimateMeal({
-  required String photoPath,
+  String? photoPath,
   required String userNote,
   int retryCount = 0,
 }) async {
+  assert(
+    photoPath != null || userNote.isNotEmpty,
+    'estimateMeal requires at least a photo or a text description',
+  );
+
   final apiKey = await loadApiKey();
   if (apiKey == null || apiKey.isEmpty) {
     throw const GeminiApiException('API key not configured');
   }
 
-  final compressed = await _compressImage(photoPath);
-  final b64 = base64Encode(compressed);
+  final parts = <Map<String, dynamic>>[];
+
+  if (photoPath != null) {
+    final compressed = await _compressImage(photoPath);
+    final b64 = base64Encode(compressed);
+    parts.add({
+      'inline_data': {'mime_type': 'image/jpeg', 'data': b64},
+    });
+  }
+
+  if (userNote.isNotEmpty) {
+    parts.add({'text': userNote});
+  }
 
   final body = jsonEncode({
     'system_instruction': {
@@ -94,14 +115,7 @@ Future<GeminiResult> estimateMeal({
       ],
     },
     'contents': [
-      {
-        'parts': [
-          {
-            'inline_data': {'mime_type': 'image/jpeg', 'data': b64},
-          },
-          if (userNote.isNotEmpty) {'text': userNote},
-        ],
-      },
+      {'parts': parts},
     ],
     'generationConfig': {
       'temperature': 0.3,
@@ -111,21 +125,27 @@ Future<GeminiResult> estimateMeal({
   });
 
   final uri = Uri.parse('$_baseUrl?key=$apiKey');
+  debugPrint('[Gemini] POST $_model (attempt ${retryCount + 1})');
   final response = await http.post(
     uri,
     headers: {'Content-Type': 'application/json'},
     body: body,
   );
+  debugPrint('[Gemini] status=${response.statusCode}');
 
-  if (response.statusCode == 429) {
+  if (response.statusCode == 429 || response.statusCode == 503) {
     final retryAfter = _parseRetryAfter(
       response.headers['retry-after'],
       retryCount,
     );
+    debugPrint('[Gemini] rate-limited — retry in ${retryAfter}s');
     throw GeminiRateLimitException(retryAfter);
   }
 
   if (response.statusCode != 200) {
+    debugPrint(
+      '[Gemini] error body: ${response.body.substring(0, response.body.length.clamp(0, 300))}',
+    );
     throw GeminiApiException('HTTP ${response.statusCode}: ${response.body}');
   }
 
@@ -169,7 +189,9 @@ GeminiResult _parseResult(Map<String, dynamic> j, String rawJson) {
   final fat = macros['fat'] as Map<String, dynamic>;
 
   return GeminiResult(
+    mealName: j['meal_name'] as String? ?? '',
     mealSummary: j['meal_summary'] as String? ?? '',
+    mealEmoji: j['meal_emoji'] as String? ?? '🍽️',
     aiConfidence: j['ai_confidence'] as String? ?? 'medium',
     scaleReferenceFound: j['scale_reference_found'] as bool? ?? false,
     kcalMin: (kcal['min'] as num).toInt(),
@@ -215,13 +237,21 @@ TAGS (controlado — NÃO invente fora desta lista):
 
 FILTRO DE PERGUNTA: só preencha "clarifying_question" se a dúvida alterar a energia em >300 kcal. Senão, null.
 
+EMOJI: em "meal_emoji" coloque UM único emoji que melhor representa a refeição (ex: 🥚 para ovos, 🍗 para frango, 🍝 para macarrão, 🥗 para salada, 🍕 para pizza, 🍛 para prato completo). Prefira especificidade: se for um único alimento dominante, use o emoji desse alimento. Se for um prato misto, use um emoji de prato/refeição genérico.
+
+NOME: em "meal_name" gere um nome curto da refeição com no máximo 4 palavras. Use o item dominante ou os dois itens principais. NUNCA use categorias de horário (café da manhã, almoço, jantar, lanche) — descreva o conteúdo. Exemplos: "Whey com leite", "Misto quente", "Frango com arroz", "Omelete de queijo", "Suco de laranja".
+
+IDIOMA: Todos os campos de texto (meal_summary, name dos componentes, clarifying_question) DEVEM estar em português brasileiro. Nunca use inglês — mesmo para alimentos de origem estrangeira (ex: "hambúrguer", "sushi", "macarrão", "bife", "frango grelhado").
+
 SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
 ''';
 
 const _responseSchema = {
   'type': 'object',
   'properties': {
+    'meal_name': {'type': 'string'},
     'meal_summary': {'type': 'string'},
+    'meal_emoji': {'type': 'string'},
     'ai_confidence': {
       'type': 'string',
       'enum': ['high', 'medium', 'low'],

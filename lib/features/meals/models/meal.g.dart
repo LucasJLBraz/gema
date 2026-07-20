@@ -22,120 +22,125 @@ const MealSchema = CollectionSchema(
       name: r'aiConfidence',
       type: IsarType.string,
     ),
-    r'aiRawJson': PropertySchema(
+    r'aiEmoji': PropertySchema(
       id: 1,
+      name: r'aiEmoji',
+      type: IsarType.string,
+    ),
+    r'aiRawJson': PropertySchema(
+      id: 2,
       name: r'aiRawJson',
       type: IsarType.string,
     ),
     r'capturedAt': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'capturedAt',
       type: IsarType.dateTime,
     ),
     r'carbMax': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'carbMax',
       type: IsarType.long,
     ),
     r'carbMin': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'carbMin',
       type: IsarType.long,
     ),
     r'carbPoint': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'carbPoint',
       type: IsarType.long,
     ),
     r'createdAt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'fatMax': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'fatMax',
       type: IsarType.long,
     ),
     r'fatMin': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'fatMin',
       type: IsarType.long,
     ),
     r'fatPoint': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'fatPoint',
       type: IsarType.long,
     ),
     r'kcalMax': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'kcalMax',
       type: IsarType.long,
     ),
     r'kcalMin': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'kcalMin',
       type: IsarType.long,
     ),
     r'kcalPoint': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'kcalPoint',
       type: IsarType.long,
     ),
     r'photoDeletedAt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'photoDeletedAt',
       type: IsarType.dateTime,
     ),
     r'photoPath': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'photoPath',
       type: IsarType.string,
     ),
     r'proteinMax': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'proteinMax',
       type: IsarType.long,
     ),
     r'proteinMin': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'proteinMin',
       type: IsarType.long,
     ),
     r'proteinPoint': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'proteinPoint',
       type: IsarType.long,
     ),
     r'retryCount': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'retryCount',
       type: IsarType.long,
     ),
     r'source': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'source',
       type: IsarType.string,
       enumMap: _MealsourceEnumValueMap,
     ),
     r'status': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'status',
       type: IsarType.string,
       enumMap: _MealstatusEnumValueMap,
     ),
     r'updatedAt': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userEditedKcal': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'userEditedKcal',
       type: IsarType.bool,
     ),
     r'userNote': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'userNote',
       type: IsarType.string,
     )
@@ -189,6 +194,12 @@ int _mealEstimateSize(
     }
   }
   {
+    final value = object.aiEmoji;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.aiRawJson;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -213,29 +224,30 @@ void _mealSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.aiConfidence);
-  writer.writeString(offsets[1], object.aiRawJson);
-  writer.writeDateTime(offsets[2], object.capturedAt);
-  writer.writeLong(offsets[3], object.carbMax);
-  writer.writeLong(offsets[4], object.carbMin);
-  writer.writeLong(offsets[5], object.carbPoint);
-  writer.writeDateTime(offsets[6], object.createdAt);
-  writer.writeLong(offsets[7], object.fatMax);
-  writer.writeLong(offsets[8], object.fatMin);
-  writer.writeLong(offsets[9], object.fatPoint);
-  writer.writeLong(offsets[10], object.kcalMax);
-  writer.writeLong(offsets[11], object.kcalMin);
-  writer.writeLong(offsets[12], object.kcalPoint);
-  writer.writeDateTime(offsets[13], object.photoDeletedAt);
-  writer.writeString(offsets[14], object.photoPath);
-  writer.writeLong(offsets[15], object.proteinMax);
-  writer.writeLong(offsets[16], object.proteinMin);
-  writer.writeLong(offsets[17], object.proteinPoint);
-  writer.writeLong(offsets[18], object.retryCount);
-  writer.writeString(offsets[19], object.source.name);
-  writer.writeString(offsets[20], object.status.name);
-  writer.writeDateTime(offsets[21], object.updatedAt);
-  writer.writeBool(offsets[22], object.userEditedKcal);
-  writer.writeString(offsets[23], object.userNote);
+  writer.writeString(offsets[1], object.aiEmoji);
+  writer.writeString(offsets[2], object.aiRawJson);
+  writer.writeDateTime(offsets[3], object.capturedAt);
+  writer.writeLong(offsets[4], object.carbMax);
+  writer.writeLong(offsets[5], object.carbMin);
+  writer.writeLong(offsets[6], object.carbPoint);
+  writer.writeDateTime(offsets[7], object.createdAt);
+  writer.writeLong(offsets[8], object.fatMax);
+  writer.writeLong(offsets[9], object.fatMin);
+  writer.writeLong(offsets[10], object.fatPoint);
+  writer.writeLong(offsets[11], object.kcalMax);
+  writer.writeLong(offsets[12], object.kcalMin);
+  writer.writeLong(offsets[13], object.kcalPoint);
+  writer.writeDateTime(offsets[14], object.photoDeletedAt);
+  writer.writeString(offsets[15], object.photoPath);
+  writer.writeLong(offsets[16], object.proteinMax);
+  writer.writeLong(offsets[17], object.proteinMin);
+  writer.writeLong(offsets[18], object.proteinPoint);
+  writer.writeLong(offsets[19], object.retryCount);
+  writer.writeString(offsets[20], object.source.name);
+  writer.writeString(offsets[21], object.status.name);
+  writer.writeDateTime(offsets[22], object.updatedAt);
+  writer.writeBool(offsets[23], object.userEditedKcal);
+  writer.writeString(offsets[24], object.userNote);
 }
 
 Meal _mealDeserialize(
@@ -246,34 +258,35 @@ Meal _mealDeserialize(
 ) {
   final object = Meal();
   object.aiConfidence = reader.readStringOrNull(offsets[0]);
-  object.aiRawJson = reader.readStringOrNull(offsets[1]);
-  object.capturedAt = reader.readDateTime(offsets[2]);
-  object.carbMax = reader.readLong(offsets[3]);
-  object.carbMin = reader.readLong(offsets[4]);
-  object.carbPoint = reader.readLong(offsets[5]);
-  object.createdAt = reader.readDateTime(offsets[6]);
-  object.fatMax = reader.readLong(offsets[7]);
-  object.fatMin = reader.readLong(offsets[8]);
-  object.fatPoint = reader.readLong(offsets[9]);
+  object.aiEmoji = reader.readStringOrNull(offsets[1]);
+  object.aiRawJson = reader.readStringOrNull(offsets[2]);
+  object.capturedAt = reader.readDateTime(offsets[3]);
+  object.carbMax = reader.readLong(offsets[4]);
+  object.carbMin = reader.readLong(offsets[5]);
+  object.carbPoint = reader.readLong(offsets[6]);
+  object.createdAt = reader.readDateTime(offsets[7]);
+  object.fatMax = reader.readLong(offsets[8]);
+  object.fatMin = reader.readLong(offsets[9]);
+  object.fatPoint = reader.readLong(offsets[10]);
   object.id = id;
-  object.kcalMax = reader.readLong(offsets[10]);
-  object.kcalMin = reader.readLong(offsets[11]);
-  object.kcalPoint = reader.readLong(offsets[12]);
-  object.photoDeletedAt = reader.readDateTimeOrNull(offsets[13]);
-  object.photoPath = reader.readStringOrNull(offsets[14]);
-  object.proteinMax = reader.readLong(offsets[15]);
-  object.proteinMin = reader.readLong(offsets[16]);
-  object.proteinPoint = reader.readLong(offsets[17]);
-  object.retryCount = reader.readLong(offsets[18]);
+  object.kcalMax = reader.readLong(offsets[11]);
+  object.kcalMin = reader.readLong(offsets[12]);
+  object.kcalPoint = reader.readLong(offsets[13]);
+  object.photoDeletedAt = reader.readDateTimeOrNull(offsets[14]);
+  object.photoPath = reader.readStringOrNull(offsets[15]);
+  object.proteinMax = reader.readLong(offsets[16]);
+  object.proteinMin = reader.readLong(offsets[17]);
+  object.proteinPoint = reader.readLong(offsets[18]);
+  object.retryCount = reader.readLong(offsets[19]);
   object.source =
-      _MealsourceValueEnumMap[reader.readStringOrNull(offsets[19])] ??
+      _MealsourceValueEnumMap[reader.readStringOrNull(offsets[20])] ??
           MealSource.aiPhoto;
   object.status =
-      _MealstatusValueEnumMap[reader.readStringOrNull(offsets[20])] ??
+      _MealstatusValueEnumMap[reader.readStringOrNull(offsets[21])] ??
           MealStatus.provisional;
-  object.updatedAt = reader.readDateTime(offsets[21]);
-  object.userEditedKcal = reader.readBool(offsets[22]);
-  object.userNote = reader.readString(offsets[23]);
+  object.updatedAt = reader.readDateTime(offsets[22]);
+  object.userEditedKcal = reader.readBool(offsets[23]);
+  object.userNote = reader.readString(offsets[24]);
   return object;
 }
 
@@ -289,17 +302,17 @@ P _mealDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 4:
       return (reader.readLong(offset)) as P;
     case 5:
       return (reader.readLong(offset)) as P;
     case 6:
-      return (reader.readDateTime(offset)) as P;
-    case 7:
       return (reader.readLong(offset)) as P;
+    case 7:
+      return (reader.readDateTime(offset)) as P;
     case 8:
       return (reader.readLong(offset)) as P;
     case 9:
@@ -311,11 +324,11 @@ P _mealDeserializeProp<P>(
     case 12:
       return (reader.readLong(offset)) as P;
     case 13:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 14:
-      return (reader.readStringOrNull(offset)) as P;
-    case 15:
       return (reader.readLong(offset)) as P;
+    case 14:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
     case 16:
       return (reader.readLong(offset)) as P;
     case 17:
@@ -323,16 +336,18 @@ P _mealDeserializeProp<P>(
     case 18:
       return (reader.readLong(offset)) as P;
     case 19:
+      return (reader.readLong(offset)) as P;
+    case 20:
       return (_MealsourceValueEnumMap[reader.readStringOrNull(offset)] ??
           MealSource.aiPhoto) as P;
-    case 20:
+    case 21:
       return (_MealstatusValueEnumMap[reader.readStringOrNull(offset)] ??
           MealStatus.provisional) as P;
-    case 21:
-      return (reader.readDateTime(offset)) as P;
     case 22:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 23:
+      return (reader.readBool(offset)) as P;
+    case 24:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -695,6 +710,150 @@ extension MealQueryFilter on QueryBuilder<Meal, Meal, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'aiConfidence',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'aiEmoji',
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'aiEmoji',
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'aiEmoji',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'aiEmoji',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'aiEmoji',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'aiEmoji',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'aiEmoji',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'aiEmoji',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'aiEmoji',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'aiEmoji',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'aiEmoji',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterFilterCondition> aiEmojiIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'aiEmoji',
         value: '',
       ));
     });
@@ -2418,6 +2577,18 @@ extension MealQuerySortBy on QueryBuilder<Meal, Meal, QSortBy> {
     });
   }
 
+  QueryBuilder<Meal, Meal, QAfterSortBy> sortByAiEmoji() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiEmoji', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterSortBy> sortByAiEmojiDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiEmoji', Sort.desc);
+    });
+  }
+
   QueryBuilder<Meal, Meal, QAfterSortBy> sortByAiRawJson() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'aiRawJson', Sort.asc);
@@ -2705,6 +2876,18 @@ extension MealQuerySortThenBy on QueryBuilder<Meal, Meal, QSortThenBy> {
   QueryBuilder<Meal, Meal, QAfterSortBy> thenByAiConfidenceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'aiConfidence', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterSortBy> thenByAiEmoji() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiEmoji', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Meal, Meal, QAfterSortBy> thenByAiEmojiDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'aiEmoji', Sort.desc);
     });
   }
 
@@ -3005,6 +3188,13 @@ extension MealQueryWhereDistinct on QueryBuilder<Meal, Meal, QDistinct> {
     });
   }
 
+  QueryBuilder<Meal, Meal, QDistinct> distinctByAiEmoji(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'aiEmoji', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Meal, Meal, QDistinct> distinctByAiRawJson(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3159,6 +3349,12 @@ extension MealQueryProperty on QueryBuilder<Meal, Meal, QQueryProperty> {
   QueryBuilder<Meal, String?, QQueryOperations> aiConfidenceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'aiConfidence');
+    });
+  }
+
+  QueryBuilder<Meal, String?, QQueryOperations> aiEmojiProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'aiEmoji');
     });
   }
 

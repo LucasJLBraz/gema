@@ -41,6 +41,7 @@ class Meal {
 
   String? aiConfidence;
   String? aiRawJson;
+  String? aiEmoji;
   int retryCount = 0;
 
   // Tracks if user manually edited kcalPoint (for reconciliation logic in §9.2)

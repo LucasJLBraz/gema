@@ -20,7 +20,7 @@ final todayMealsProvider = AutoDisposeStreamProvider<List<Meal>>.internal(
 );
 
 typedef TodayMealsRef = AutoDisposeStreamProviderRef<List<Meal>>;
-String _$mealByIdHash() => r'030ceed07c72256a64ea78b3db9288a59a137a33';
+String _$mealsForDayHash() => r'7c744a3225758dadb781c34b4358c2e41ea50725';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -42,6 +42,134 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// See also [mealsForDay].
+@ProviderFor(mealsForDay)
+const mealsForDayProvider = MealsForDayFamily();
+
+/// See also [mealsForDay].
+class MealsForDayFamily extends Family<AsyncValue<List<Meal>>> {
+  /// See also [mealsForDay].
+  const MealsForDayFamily();
+
+  /// See also [mealsForDay].
+  MealsForDayProvider call(
+    DateTime day,
+  ) {
+    return MealsForDayProvider(
+      day,
+    );
+  }
+
+  @override
+  MealsForDayProvider getProviderOverride(
+    covariant MealsForDayProvider provider,
+  ) {
+    return call(
+      provider.day,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'mealsForDayProvider';
+}
+
+/// See also [mealsForDay].
+class MealsForDayProvider extends AutoDisposeStreamProvider<List<Meal>> {
+  /// See also [mealsForDay].
+  MealsForDayProvider(
+    DateTime day,
+  ) : this._internal(
+          (ref) => mealsForDay(
+            ref as MealsForDayRef,
+            day,
+          ),
+          from: mealsForDayProvider,
+          name: r'mealsForDayProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$mealsForDayHash,
+          dependencies: MealsForDayFamily._dependencies,
+          allTransitiveDependencies:
+              MealsForDayFamily._allTransitiveDependencies,
+          day: day,
+        );
+
+  MealsForDayProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.day,
+  }) : super.internal();
+
+  final DateTime day;
+
+  @override
+  Override overrideWith(
+    Stream<List<Meal>> Function(MealsForDayRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: MealsForDayProvider._internal(
+        (ref) => create(ref as MealsForDayRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        day: day,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<Meal>> createElement() {
+    return _MealsForDayProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is MealsForDayProvider && other.day == day;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, day.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+mixin MealsForDayRef on AutoDisposeStreamProviderRef<List<Meal>> {
+  /// The parameter `day` of this provider.
+  DateTime get day;
+}
+
+class _MealsForDayProviderElement
+    extends AutoDisposeStreamProviderElement<List<Meal>> with MealsForDayRef {
+  _MealsForDayProviderElement(super.provider);
+
+  @override
+  DateTime get day => (origin as MealsForDayProvider).day;
+}
+
+String _$mealByIdHash() => r'030ceed07c72256a64ea78b3db9288a59a137a33';
 
 /// See also [mealById].
 @ProviderFor(mealById)
@@ -168,7 +296,7 @@ class _MealByIdProviderElement extends AutoDisposeFutureProviderElement<Meal?>
   int get id => (origin as MealByIdProvider).id;
 }
 
-String _$mealQueueNotifierHash() => r'213ced4f3f551bccbc00fa66c93a71815f369e42';
+String _$mealQueueNotifierHash() => r'c934f4bcac07e495d90b1a0510e84cf42c63eb56';
 
 /// See also [MealQueueNotifier].
 @ProviderFor(MealQueueNotifier)

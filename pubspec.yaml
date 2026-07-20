@@ -48,6 +48,12 @@ dependencies:
   # Data export
   share_plus: ^10.0.0
 
+  # Gallery picker
+  image_picker: ^1.1.2
+
+  # Speech to text
+  speech_to_text: ^7.0.0
+
   # Utilities
   intl: ^0.19.0
 

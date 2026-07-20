@@ -88,7 +88,36 @@ class AnalyticsScreen extends ConsumerWidget {
                         ),
                       ),
                     )
-                  else ...[
+                  else if (smoothed.length < 3) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            smoothed.last.$2.toStringAsFixed(1),
+                            style: GemaTextStyles.display.copyWith(
+                              color: primary,
+                              fontSize: 32,
+                              letterSpacing: -1,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'kg',
+                            style: GemaTextStyles.body.copyWith(color: textSub),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      smoothed.length == 1
+                          ? 'Registre seu peso nos próximos dias para ver a tendência.'
+                          : 'Registre mais ${3 - smoothed.length} pesagem(ns) em dias diferentes para ver a tendência.',
+                      style: GemaTextStyles.body.copyWith(color: textSub),
+                    ),
+                  ] else ...[
                     _WeightChart(
                       points: smoothed,
                       isDark: isDark,

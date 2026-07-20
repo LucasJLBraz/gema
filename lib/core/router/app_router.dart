@@ -8,6 +8,7 @@ import '../../features/meals/screens/confirm_meal_screen.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/onboarding/screens/onboarding_guard.dart';
 import '../../features/products/screens/barcode_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../shell/main_shell.dart';
 
 part 'app_router.g.dart';
@@ -52,6 +53,7 @@ GoRouter router(Ref ref) {
         },
       ),
       GoRoute(path: '/barcode', builder: (_, __) => const BarcodeScreen()),
+      GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
     ],
   );
 }

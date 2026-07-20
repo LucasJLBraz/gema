@@ -434,24 +434,89 @@ class _StepConfig extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceVar = isDark
+        ? GemaColors.darkSurfaceVar
+        : GemaColors.lightSurfaceVar;
+    final textSub = isDark ? GemaColors.darkTextSub : GemaColors.lightTextSub;
+    final primary = isDark ? GemaColors.darkPrimary : GemaColors.lightPrimary;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Configurações',
+            'Chave da API',
             style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Sua chave é salva localmente com segurança e nunca enviada para nossos servidores.',
-            style: Theme.of(context).textTheme.bodyMedium,
+            'O GEMA usa Gemini para analisar suas refeições. A chave é salva somente no seu celular — nunca enviamos nada para nossos servidores.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: textSub),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
+
+          // Step-by-step instructions
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: surfaceVar,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Como obter sua chave gratuita',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 14),
+                _Step(
+                  number: '1',
+                  primary: primary,
+                  text:
+                      'Abra aistudio.google.com no navegador. Faça login com sua conta Google.',
+                ),
+                _Step(
+                  number: '2',
+                  primary: primary,
+                  text:
+                      'Clique em "Get API key" no menu lateral esquerdo. Em seguida, "Create API key".',
+                ),
+                _Step(
+                  number: '3',
+                  primary: primary,
+                  text:
+                      'Selecione "Create API key in new project" (ou escolha um projeto existente). Clique em "Create".',
+                ),
+                _Step(
+                  number: '4',
+                  primary: primary,
+                  text:
+                      'Copie a chave gerada — ela começa com "AIza". Cole no campo abaixo.',
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'A chave gratuita tem limite de 15 requisições/minuto e 1.000/dia — suficiente para uso pessoal normal.',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: textSub),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
           TextField(
             controller: apiKeyCtrl,
             obscureText: !visible,
+            autocorrect: false,
+            enableSuggestions: false,
             decoration: InputDecoration(
               labelText: 'Chave da API Gemini',
               hintText: 'AIza...',
@@ -461,10 +526,57 @@ class _StepConfig extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
-            'Obtenha gratuitamente em aistudio.google.com',
-            style: Theme.of(context).textTheme.bodyMedium,
+            'Você pode alterar ou trocar a chave depois em Configurações.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: textSub),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Step extends StatelessWidget {
+  const _Step({
+    required this.number,
+    required this.primary,
+    required this.text,
+  });
+  final String number;
+  final Color primary;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            margin: const EdgeInsets.only(right: 12, top: 1),
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: TextStyle(
+                  color: primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
           ),
         ],
       ),

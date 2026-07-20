@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -34,11 +35,18 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
     if (meal == null || !mounted) return;
     setState(() {
       _meal = meal;
+      // Only analyse if the queue processor hasn't already picked it up
       if (meal.source == MealSource.aiPhoto &&
           meal.status == MealStatus.queued) {
         _analyzing = true;
       }
     });
+    // If it's already being processed in the background, just watch Isar
+    if (meal.source == MealSource.aiPhoto &&
+        meal.status == MealStatus.processing) {
+      _watchForCompletion(meal.id);
+      return;
+    }
     if (meal.source == MealSource.aiPhoto && meal.status == MealStatus.queued) {
       await _runAnalysis(meal);
     }
@@ -46,9 +54,10 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
 
   Future<void> _runAnalysis(Meal meal) async {
     try {
-      if (meal.photoPath == null) return;
+      // Require at least a photo or a user note
+      if (meal.photoPath == null && meal.userNote.isEmpty) return;
       final result = await gemini.estimateMeal(
-        photoPath: meal.photoPath!,
+        photoPath: meal.photoPath,
         userNote: meal.userNote,
         retryCount: meal.retryCount,
       );
@@ -70,6 +79,9 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
             fatPoint: result.fatPoint,
             aiConfidence: result.aiConfidence,
             aiRawJson: result.rawJson,
+            aiEmoji: result.mealEmoji,
+            mealName: result.mealName,
+            mealSummary: result.mealSummary,
             components: result.components,
           );
       final updated = await ref.read(mealByIdProvider(meal.id).future);
@@ -101,6 +113,37 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
     }
   }
 
+  /// Poll Isar until the meal leaves `processing` state (background processor handles it).
+  void _watchForCompletion(int mealId) {
+    setState(() => _analyzing = true);
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return false;
+      final updated = await ref.read(mealByIdProvider(mealId).future);
+      if (updated == null || !mounted) return false;
+      if (updated.status == MealStatus.processing ||
+          updated.status == MealStatus.queued) {
+        return true; // keep polling
+      }
+      setState(() {
+        _meal = updated;
+        _analyzing = false;
+      });
+      return false;
+    });
+  }
+
+  Future<void> _retry() async {
+    final meal = _meal;
+    if (meal == null) return;
+    setState(() {
+      _error = null;
+      _analyzing = true;
+    });
+    // Reset to queued so QueueProcessor picks it up (or run inline)
+    await _runAnalysis(meal);
+  }
+
   Future<void> _save() async {
     context.go('/home');
   }
@@ -127,6 +170,22 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
         : GemaColors.chartFatLight;
 
     final meal = _meal;
+
+    // Parse AI result from raw JSON (available after analysis completes)
+    Map<String, dynamic>? aiJson;
+    String aiSummary = '';
+    List<Map<String, dynamic>> aiComponents = [];
+    if (meal != null && meal.aiRawJson != null) {
+      try {
+        aiJson = jsonDecode(meal.aiRawJson!) as Map<String, dynamic>;
+        aiSummary = aiJson['meal_summary'] as String? ?? '';
+        aiComponents = List<Map<String, dynamic>>.from(
+          (aiJson['components'] as List? ?? []).map(
+            (e) => Map<String, dynamic>.from(e as Map),
+          ),
+        );
+      } catch (_) {}
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -195,13 +254,24 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
                               : GemaColors.lightErrorCont,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(
-                          _error!,
-                          style: GemaTextStyles.body.copyWith(
-                            color: isDark
-                                ? GemaColors.darkOnErrCont
-                                : GemaColors.lightOnErrCont,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _error!,
+                              style: GemaTextStyles.body.copyWith(
+                                color: isDark
+                                    ? GemaColors.darkOnErrCont
+                                    : GemaColors.lightOnErrCont,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            TextButton.icon(
+                              onPressed: _retry,
+                              icon: const Icon(Icons.refresh, size: 16),
+                              label: const Text('Tentar novamente'),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -233,6 +303,42 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
                         ],
                       ),
                       const SizedBox(height: 14),
+                    ],
+
+                    // AI meal summary
+                    if (!_analyzing && aiSummary.isNotEmpty) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: surfaceVar,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          aiSummary,
+                          style: GemaTextStyles.body.copyWith(color: text),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
+                    // Components list
+                    if (!_analyzing && aiComponents.isNotEmpty) ...[
+                      Text(
+                        'COMPONENTES',
+                        style: GemaTextStyles.caption.copyWith(color: textSub),
+                      ),
+                      const SizedBox(height: 8),
+                      ...aiComponents.map(
+                        (c) => _ComponentRow(
+                          component: c,
+                          surfaceVar: surfaceVar,
+                          text: text,
+                          textSub: textSub,
+                          primary: primary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
                     ],
 
                     // Clarifying question
@@ -552,4 +658,84 @@ class _MacroChip extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ComponentRow extends StatelessWidget {
+  const _ComponentRow({
+    required this.component,
+    required this.surfaceVar,
+    required this.text,
+    required this.textSub,
+    required this.primary,
+  });
+
+  final Map<String, dynamic> component;
+  final Color surfaceVar;
+  final Color text;
+  final Color textSub;
+  final Color primary;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = component['name'] as String? ?? '—';
+    final grupo = component['grupo_alimentar'] as String? ?? '';
+    final massG = component['estimated_mass_g'] as int?;
+    final kcal = component['kcal_point'] as int? ?? 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: surfaceVar,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Text(_groupEmoji(grupo), style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: GemaTextStyles.label.copyWith(color: text)),
+                if (massG != null)
+                  Text(
+                    '~${massG}g',
+                    style: GemaTextStyles.micro.copyWith(
+                      color: textSub,
+                      letterSpacing: 0,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Text(
+            '~$kcal kcal',
+            style: GemaTextStyles.dataMono.copyWith(
+              color: primary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _groupEmoji(String g) => switch (g) {
+    'proteina_animal' => '🥩',
+    'proteina_vegetal' => '🌱',
+    'laticinio' => '🥛',
+    'graos_cereais' => '🌾',
+    'tuberculo' => '🥔',
+    'leguminosa' => '🫘',
+    'vegetal' => '🥦',
+    'fruta' => '🍎',
+    'gordura_oleo' => '🫒',
+    'doce_acucar' => '🍬',
+    'bebida_calorica' => '🧃',
+    'bebida_zero' => '💧',
+    'molho_condimento' => '🧂',
+    'ultraprocessado' => '📦',
+    _ => '🍽️',
+  };
 }

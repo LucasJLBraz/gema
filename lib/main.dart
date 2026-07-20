@@ -6,6 +6,7 @@ import 'core/background/background_tasks.dart';
 import 'core/db/database.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/meals/services/queue_processor.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ void main() async {
   await initializeDateFormatting('pt_BR');
   await initNotifications();
   await registerBackgroundTasks();
+  QueueProcessor.instance.start();
   runApp(const ProviderScope(child: GemaApp()));
 }
 

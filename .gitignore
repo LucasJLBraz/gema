@@ -44,3 +44,16 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 android/build/
+android/.gradle/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+
+# Secrets — never commit the Gemini API key or other credentials
+*.env
+.env*
+
+# Local Isar database files (created at runtime, never part of the repo)
+*.isar
+*.isar.lock

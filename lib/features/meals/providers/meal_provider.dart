@@ -30,6 +30,19 @@ Stream<List<Meal>> todayMeals(TodayMealsRef ref) {
 }
 
 @riverpod
+Stream<List<Meal>> mealsForDay(MealsForDayRef ref, DateTime day) {
+  final start = DateTime(day.year, day.month, day.day);
+  final end = DateTime(day.year, day.month, day.day + 1);
+  return isar.meals
+      .filter()
+      .capturedAtBetween(start, end)
+      .not()
+      .statusEqualTo(MealStatus.error)
+      .sortByCapturedAt()
+      .watch(fireImmediately: true);
+}
+
+@riverpod
 Future<Meal?> mealById(MealByIdRef ref, int id) async {
   return isar.meals.get(id);
 }
@@ -99,6 +112,9 @@ class MealQueueNotifier extends _$MealQueueNotifier {
     required int fatPoint,
     required String aiConfidence,
     required String aiRawJson,
+    required String aiEmoji,
+    required String mealName,
+    required String mealSummary,
     required List<Map<String, dynamic>> components,
   }) async {
     final meal = await isar.meals.get(mealId);
@@ -120,6 +136,13 @@ class MealQueueNotifier extends _$MealQueueNotifier {
         ..fatPoint = fatPoint
         ..aiConfidence = aiConfidence
         ..aiRawJson = aiRawJson
+        ..aiEmoji = aiEmoji
+        // AI-generated short name takes priority over the user's freeform context note
+        ..userNote = mealName.isNotEmpty
+            ? mealName
+            : meal.userNote.isNotEmpty
+            ? meal.userNote
+            : mealSummary
         ..status = MealStatus.done
         ..updatedAt = DateTime.now();
       await isar.meals.put(meal);

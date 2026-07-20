@@ -8,12 +8,14 @@ class WaterStrip extends StatelessWidget {
     required this.goalMl,
     required this.isDark,
     required this.onAdd,
+    this.onRemove,
   });
 
   final int currentMl;
   final int goalMl;
   final bool isDark;
   final void Function(int ml) onAdd;
+  final void Function(int ml)? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -73,30 +75,59 @@ class WaterStrip extends StatelessWidget {
                 ),
               ),
               Row(
-                children: [250, 500].map((ml) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: GestureDetector(
-                      onTap: () => onAdd(ml),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: primaryCont,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '+$ml',
-                          style: GemaTextStyles.label.copyWith(
-                            color: onPrimCont,
+                children: [
+                  if (onRemove != null && currentMl > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: GestureDetector(
+                        onTap: () => onRemove!(250),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? GemaColors.darkSurfaceVar
+                                : GemaColors.lightSurfaceVar,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '−250',
+                            style: GemaTextStyles.label.copyWith(
+                              color: isDark
+                                  ? GemaColors.darkTextSub
+                                  : GemaColors.lightTextSub,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
+                  ...[250, 500].map((ml) {
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: GestureDetector(
+                        onTap: () => onAdd(ml),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: primaryCont,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '+$ml',
+                            style: GemaTextStyles.label.copyWith(
+                              color: onPrimCont,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ),
             ],
           ),

@@ -7,6 +7,7 @@ import '../gamification/providers/xp_provider.dart';
 import '../goals/providers/goal_provider.dart';
 import '../meals/models/meal.dart';
 import '../meals/providers/meal_provider.dart';
+import '../meals/screens/describe_meal_sheet.dart';
 import '../water/providers/water_provider.dart';
 import 'widgets/calorie_ring.dart';
 import 'widgets/macro_bars.dart';
@@ -43,6 +44,30 @@ class HomeScreen extends ConsumerWidget {
     final totalCarb = meals.fold(0, (s, m) => s + m.carbPoint);
     final totalFat = meals.fold(0, (s, m) => s + m.fatPoint);
 
+    // Uncertainty range: AI photo meals use real Gemini min/max; others use point
+    final totalKcalMin = meals.fold(
+      0,
+      (s, m) => s + (m.source == MealSource.aiPhoto ? m.kcalMin : m.kcalPoint),
+    );
+    final totalKcalMax = meals.fold(
+      0,
+      (s, m) => s + (m.source == MealSource.aiPhoto ? m.kcalMax : m.kcalPoint),
+    );
+    final totalProteinMax = meals.fold(
+      0,
+      (s, m) =>
+          s + (m.source == MealSource.aiPhoto ? m.proteinMax : m.proteinPoint),
+    );
+    final totalCarbMax = meals.fold(
+      0,
+      (s, m) => s + (m.source == MealSource.aiPhoto ? m.carbMax : m.carbPoint),
+    );
+    final totalFatMax = meals.fold(
+      0,
+      (s, m) => s + (m.source == MealSource.aiPhoto ? m.fatMax : m.fatPoint),
+    );
+    final hasRange = totalKcalMax - totalKcalMin >= 20;
+
     final kcalTarget = goal?.kcalTarget ?? 2000;
     final proteinTarget = goal?.proteinTargetG ?? 130;
     final carbTarget = goal?.carbTargetG ?? 210;
@@ -72,21 +97,31 @@ class HomeScreen extends ConsumerWidget {
                             letterSpacing: -1,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: primaryCont,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            '⭐ Nível $level',
-                            style: GemaTextStyles.label.copyWith(
-                              color: onPrimCont,
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: primaryCont,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '⭐ Nível $level',
+                                style: GemaTextStyles.label.copyWith(
+                                  color: onPrimCont,
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.settings_outlined),
+                              onPressed: () => context.push('/settings'),
+                              tooltip: 'Configurações',
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -104,6 +139,14 @@ class HomeScreen extends ConsumerWidget {
                               target: kcalTarget,
                               pct: kcalPct.clamp(0, 1.2),
                               isDark: isDark,
+                              pctMin: hasRange
+                                  ? (totalKcalMin / kcalTarget).clamp(0.0, 1.2)
+                                  : null,
+                              pctMax: hasRange
+                                  ? (totalKcalMax / kcalTarget).clamp(0.0, 1.2)
+                                  : null,
+                              rangeMin: hasRange ? totalKcalMin : null,
+                              rangeMax: hasRange ? totalKcalMax : null,
                             ),
                             const SizedBox(width: 20),
                             Expanded(
@@ -115,6 +158,9 @@ class HomeScreen extends ConsumerWidget {
                                 fat: totalFat,
                                 fatTarget: fatTarget,
                                 isDark: isDark,
+                                proteinMax: hasRange ? totalProteinMax : null,
+                                carbMax: hasRange ? totalCarbMax : null,
+                                fatMax: hasRange ? totalFatMax : null,
                               ),
                             ),
                           ],
@@ -129,7 +175,9 @@ class HomeScreen extends ConsumerWidget {
                       child: Row(
                         children: [
                           Text(
-                            'Restam ${(kcalTarget - totalKcal).clamp(0, 9999)} kcal',
+                            hasRange
+                                ? 'Restam ${(kcalTarget - totalKcalMax).clamp(0, 9999)}–${(kcalTarget - totalKcalMin).clamp(0, 9999)} kcal'
+                                : 'Restam ${(kcalTarget - totalKcal).clamp(0, 9999)} kcal',
                             style: GemaTextStyles.body.copyWith(
                               color: isDark
                                   ? GemaColors.darkTextSub
@@ -174,6 +222,8 @@ class HomeScreen extends ConsumerWidget {
                       isDark: isDark,
                       onAdd: (ml) =>
                           ref.read(todayWaterMlProvider.notifier).add(ml),
+                      onRemove: (ml) =>
+                          ref.read(todayWaterMlProvider.notifier).remove(ml),
                     ),
                     const SizedBox(height: 20),
 
@@ -264,6 +314,18 @@ class _ActionButtons extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: FilledButton.tonal(
+                onPressed: () => _showDescribe(context),
+                style: FilledButton.styleFrom(
+                  backgroundColor: primaryCont,
+                  foregroundColor: onPrimCont,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                child: const Text('✏️ Descrever'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: FilledButton.tonal(
                 onPressed: () => context.push('/barcode'),
                 style: FilledButton.styleFrom(
                   backgroundColor: primaryCont,
@@ -287,6 +349,17 @@ class _ActionButtons extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => const _QuickAddSheet(),
+    );
+  }
+
+  void _showDescribe(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const DescribeMealSheet(),
     );
   }
 }
