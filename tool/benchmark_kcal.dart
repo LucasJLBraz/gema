@@ -3,12 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:gema/core/gemini/gemini_service.dart';
-// nutrition_reference.dart (parseTacoReferenceJson/formatReferenceTableBlock,
-// reading assets/data/taco_reference.json via dart:io rather than
-// nutrition_reference_loader.dart's rootBundle-based loadTacoReference — see
-// the git history of this file for why) is not imported in this revision
-// since the current arms list doesn't include the grounded prompt. Re-add it
-// if a future run needs 'grounded' again.
+// Read via dart:io + the pure parser rather than
+// nutrition_reference_loader.dart's rootBundle-based loadTacoReference,
+// which requires a Flutter engine unavailable under plain `dart run`.
+import 'package:gema/core/gemini/nutrition_reference.dart';
 
 // gemini-2.5-flash-lite (productionModel) is deliberately excluded from the
 // full run: a smoke test with a freshly-created API key got HTTP 404 "This
@@ -45,19 +43,25 @@ Future<void> main() async {
     exit(1);
   }
 
-  // 'baseline' and 'grounded' already ran in a prior invocation of this
-  // script (results are in benchmark_results/raw_results.jsonl, appended to
-  // below rather than overwritten). This run adds two arms testing
-  // user-requested follow-up questions: does removing the explicit
-  // chain-of-thought scaffold change accuracy (systemPromptNoCot, fully
-  // testable against the existing ground truth), and does the scale-in-
-  // frame instruction regress accuracy when no scale is present in the
-  // photo (systemPromptWithScale — cannot validate an *accuracy benefit*
-  // from this benchmark, since no ground-truth photo shows a scale, but can
-  // confirm it doesn't hurt when the feature correctly detects absence).
+  // 'baseline', 'grounded', 'no_cot', and 'with_scale' already ran in prior
+  // invocations of this script (results are in
+  // benchmark_results/raw_results.jsonl, appended to below rather than
+  // overwritten). This run adds 'combined' — per explicit user decision,
+  // no_cot's style (strongest individual result) merged with grounded's
+  // TACO table and with_scale's scale detection, all in one prompt — to get
+  // real evidence on the exact combination being considered for
+  // production, not just each ingredient in isolation.
+  final referenceJson =
+      File('assets/data/taco_reference.json').readAsStringSync();
+  final reference = parseTacoReferenceJson(referenceJson);
+  final referenceBlock = formatReferenceTableBlock(reference);
+
   final arms = [
-    const _Arm('no_cot', systemPromptNoCot, responseSchemaBaseline),
-    const _Arm('with_scale', systemPromptWithScale, responseSchemaWithScale),
+    _Arm(
+      'combined',
+      systemPromptCombined(referenceBlock),
+      responseSchemaCombined,
+    ),
   ];
 
   final rows = _readGroundTruth('benchmark_data/ground_truth.csv');

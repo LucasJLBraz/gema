@@ -84,4 +84,34 @@ void main() {
       expect(props.containsKey('scale_reading_g'), isFalse);
     });
   });
+
+  group('systemPromptCombined', () {
+    test('has no numbered CoT steps but keeps grounding and scale instructions', () {
+      final prompt = systemPromptCombined('Arroz|124|2.6|25.8|1.0\n');
+      expect(prompt, isNot(contains('1. Liste os componentes')));
+      expect(prompt, contains('TABELA DE REFERÊNCIA'));
+      expect(prompt, contains('Arroz|124|2.6|25.8|1.0'));
+      expect(prompt, contains('matched_reference_food'));
+      expect(prompt, contains('balança'));
+      expect(prompt, contains('scale_reading_used'));
+    });
+  });
+
+  group('responseSchemaCombined', () {
+    test('has both matched_reference_food and scale_reading fields', () {
+      final props = responseSchemaCombined['properties'] as Map<String, dynamic>;
+      expect(props.containsKey('scale_reading_used'), isTrue);
+      expect(props.containsKey('scale_reading_g'), isTrue);
+      final componentProps =
+          ((responseSchemaCombined['properties']
+                      as Map<String, dynamic>)['components']
+                  as Map<String, dynamic>)['items']
+              as Map<String, dynamic>;
+      expect(
+        (componentProps['properties'] as Map<String, dynamic>)
+            .containsKey('matched_reference_food'),
+        isTrue,
+      );
+    });
+  });
 }
