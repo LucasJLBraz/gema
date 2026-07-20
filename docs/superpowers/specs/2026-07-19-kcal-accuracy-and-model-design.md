@@ -55,7 +55,7 @@ Avaliadas TACO (UNICAMP, ~600 alimentos, dados abertos em JSON/CSV em repositór
 
 ### 1. Mudança de prompt e schema (`lib/core/gemini/gemini_service.dart`)
 
-- `_systemPrompt` ganha um bloco de **tabela de referência compacta**: subconjunto curado da TACO (~150–250 linhas), formato compacto `nome|kcal_100g|proteina_100g|carbo_100g|gordura_100g`. Custo de token estimado: ~3–5k tokens/chamada, desprezível mesmo no Flash-Lite (~$0,0005/chamada).
+- `_systemPrompt` ganha um bloco de **tabela de referência**: todos os itens da TACO com dados completos de kcal/proteína/carboidrato/gordura (~500+ linhas — ver "Curadoria da tabela TACO" abaixo para o porquê de não ser um subconjunto curado), formato compacto `nome|kcal_100g|proteina_100g|carbo_100g|gordura_100g`. Custo de token estimado: ~8–12k tokens/chamada, ainda desprezível mesmo no Flash-Lite (~$0,001–0,0015/chamada).
 - Instrução do CoT muda de "converta massa→energia por tabela nutricional padrão" (paramétrico) para: "para cada componente, procure a entrada mais próxima na TABELA DE REFERÊNCIA abaixo; se encontrar equivalente razoável, use os valores dela para calcular energia/macros; se não encontrar, estime por conhecimento próprio e marque `matched_reference_food` como `null`".
 - `_responseSchema` ganha o campo `matched_reference_food` (string, nullable) por componente — nome da entrada da TACO usada (ou `null`). Serve para auditoria (`aiRawJson` já persiste a resposta crua) e para medir taxa de cobertura no benchmark.
 - Estimativa de porção/volume (a cadeia de raciocínio sobre objeto de escala, os intervalos assimétricos `0.75×`–`1.45×`/`0.85×`–`1.25×`) **não muda** — fora de escopo, já calibrada pela literatura anterior.
@@ -63,9 +63,9 @@ Avaliadas TACO (UNICAMP, ~600 alimentos, dados abertos em JSON/CSV em repositór
 
 ### 2. Curadoria da tabela TACO
 
-- Fonte: repositório JSON aberto da TACO (confirmar licença do repositório específico escolhido antes de vendorizar — passo de implementação, não decidido aqui).
-- Processo: mapear os alimentos mais comuns/genéricos de cada um dos 15 valores de `grupo_alimentar` já existentes no schema do GEMA; excluir entradas muito específicas de laboratório (ex. variações de cultivar) que não aparecem em fotos de refeição reais.
-- Formato final: asset estático bundled no app (ex. `assets/data/taco_reference.json`, ou constante Dart gerada a partir dele), versionado junto ao código-fonte — sem infraestrutura de atualização em runtime, sem novo schema Isar. Atualização é manual e de baixa frequência (a TACO não é atualizada com frequência).
+- Fonte: [`brolesi/taco`](https://github.com/brolesi/taco) — código MIT, dados redistribuídos do NEPA/UNICAMP (acesso público), `data/processed/taco/taco_composicao.csv`, ~597 itens, valores por 100g de parte comestível.
+- Processo: **decisão tomada durante o planejamento de implementação** — usar a tabela completa (todos os itens com kcal/proteína/carboidrato/gordura preenchidos, ~500+ após filtrar linhas incompletas) em vez de uma curadoria manual de 150–250 itens. Escolher "os alimentos mais comuns" sem dados reais de frequência de uso é um julgamento subjetivo sem base objetiva; incluir tudo que tem dados completos é mecânico, reprodutível, e o custo extra de tokens (~8–12k vs. ~3–5k por chamada) é desprezível frente ao orçamento do tier grátis. Classificação em `grupo_alimentar` via heurística de palavras-chave no nome do alimento, com fallback `outro`.
+- Formato final: asset estático bundled no app (`assets/data/taco_reference.json`), versionado junto ao código-fonte — sem infraestrutura de atualização em runtime, sem novo schema Isar. Atualização é manual e de baixa frequência (a TACO não é atualizada com frequência).
 
 ### 3. Processo de decisão do modelo (item #2)
 
