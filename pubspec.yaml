@@ -64,7 +64,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
   isar_generator: ^3.1.0+1
   riverpod_generator: ^2.3.9
   build_runner: ^2.4.13
