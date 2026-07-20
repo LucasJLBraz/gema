@@ -20,7 +20,7 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final idx = _currentIndex(context);
-    final screens = const [HomeScreen(), HistoryScreen(), AnalyticsScreen()];
+    const screens = [HomeScreen(), HistoryScreen(), AnalyticsScreen()];
 
     return Scaffold(
       body: screens[idx],

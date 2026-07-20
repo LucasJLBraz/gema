@@ -58,6 +58,9 @@ android/key.properties
 *.isar
 *.isar.lock
 
+# Isar core binary for local flutter test (downloaded on demand)
+libisar.so
+
 .rag_index/
 
 .worktrees/
