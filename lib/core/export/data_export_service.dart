@@ -51,10 +51,12 @@ class DataExportService {
     final weightFile = File('${dir.path}/gema_peso_$tag.csv')
       ..writeAsStringSync(weightcsv.toString());
 
-    await Share.shareXFiles([
-      XFile(mealsFile.path),
-      XFile(weightFile.path),
-    ], subject: 'GEMA — Export $tag');
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(mealsFile.path), XFile(weightFile.path)],
+        subject: 'GEMA — Export $tag',
+      ),
+    );
   }
 
   Future<void> exportJson(BuildContext context) async {
@@ -80,9 +82,12 @@ class DataExportService {
     final file = File('${dir.path}/gema_export_$tag.json')
       ..writeAsStringSync(const JsonEncoder.withIndent('  ').convert(payload));
 
-    await Share.shareXFiles([
-      XFile(file.path),
-    ], subject: 'GEMA — Export JSON $tag');
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path)],
+        subject: 'GEMA — Export JSON $tag',
+      ),
+    );
   }
 
   String _date(DateTime d) =>
