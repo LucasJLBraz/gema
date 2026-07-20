@@ -26,9 +26,18 @@ void main() {
       expect(isButtonEnabled(tester), isFalse);
 
       // enterText replaces the whole field value at once, like a paste — no keystroke events.
-      await tester.enterText(find.byKey(const Key('onboarding-weight-field')), '80');
-      await tester.enterText(find.byKey(const Key('onboarding-height-field')), '178');
-      await tester.enterText(find.byKey(const Key('onboarding-age-field')), '30');
+      await tester.enterText(
+        find.byKey(const Key('onboarding-weight-field')),
+        '80',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-height-field')),
+        '178',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-age-field')),
+        '30',
+      );
       await tester.pump();
 
       expect(isButtonEnabled(tester), isTrue);

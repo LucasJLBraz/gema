@@ -13,8 +13,9 @@ String _$activeGoalHash() => r'1278c5e18bd9fee67624196899bdc8d90512f027';
 final activeGoalProvider = AutoDisposeFutureProvider<Goal?>.internal(
   activeGoal,
   name: r'activeGoalProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$activeGoalHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$activeGoalHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
@@ -26,13 +27,14 @@ String _$goalNotifierHash() => r'a25e290519a97c774aa5d149aca9e27415f61fc0';
 @ProviderFor(GoalNotifier)
 final goalNotifierProvider =
     AutoDisposeAsyncNotifierProvider<GoalNotifier, Goal?>.internal(
-  GoalNotifier.new,
-  name: r'goalNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$goalNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+      GoalNotifier.new,
+      name: r'goalNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$goalNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
 
 typedef _$GoalNotifier = AutoDisposeAsyncNotifier<Goal?>;
 // ignore_for_file: type=lint

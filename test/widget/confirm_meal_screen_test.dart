@@ -62,27 +62,29 @@ void main() {
     return fakeNotifier;
   }
 
-  testWidgets('tapping the close button deletes the meal via the notifier, then goes home', (
-    tester,
-  ) async {
-    final fakeNotifier = await pumpConfirmScreen(tester);
+  testWidgets(
+    'tapping the close button deletes the meal via the notifier, then goes home',
+    (tester) async {
+      final fakeNotifier = await pumpConfirmScreen(tester);
 
-    await tester.tap(find.byIcon(Icons.close));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
 
-    expect(find.text('HOME'), findsOneWidget);
-    expect(fakeNotifier.deletedMealId, _mealId);
-  });
+      expect(find.text('HOME'), findsOneWidget);
+      expect(fakeNotifier.deletedMealId, _mealId);
+    },
+  );
 
-  testWidgets('system back gesture deletes the meal via the notifier, then goes home', (
-    tester,
-  ) async {
-    final fakeNotifier = await pumpConfirmScreen(tester);
+  testWidgets(
+    'system back gesture deletes the meal via the notifier, then goes home',
+    (tester) async {
+      final fakeNotifier = await pumpConfirmScreen(tester);
 
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
 
-    expect(find.text('HOME'), findsOneWidget);
-    expect(fakeNotifier.deletedMealId, _mealId);
-  });
+      expect(find.text('HOME'), findsOneWidget);
+      expect(fakeNotifier.deletedMealId, _mealId);
+    },
+  );
 }

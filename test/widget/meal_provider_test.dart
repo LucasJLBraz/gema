@@ -13,10 +13,10 @@ void main() {
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('gema_meal_provider_test_');
-    db.isar = await Isar.open(
-      [MealSchema, MealComponentSchema],
-      directory: tempDir.path,
-    );
+    db.isar = await Isar.open([
+      MealSchema,
+      MealComponentSchema,
+    ], directory: tempDir.path);
   });
 
   tearDown(() async {
@@ -24,27 +24,30 @@ void main() {
     if (await tempDir.exists()) await tempDir.delete(recursive: true);
   });
 
-  test('deleteMeal removes the Isar record and the associated photo file', () async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final notifier = container.read(mealQueueNotifierProvider.notifier);
+  test(
+    'deleteMeal removes the Isar record and the associated photo file',
+    () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(mealQueueNotifierProvider.notifier);
 
-    final photoFile = File('${tempDir.path}/meal_test.jpg')
-      ..writeAsStringSync('fake-jpeg-bytes');
+      final photoFile = File('${tempDir.path}/meal_test.jpg')
+        ..writeAsStringSync('fake-jpeg-bytes');
 
-    final mealId = await notifier.createMeal(
-      source: MealSource.aiPhoto,
-      photoPath: photoFile.path,
-    );
+      final mealId = await notifier.createMeal(
+        source: MealSource.aiPhoto,
+        photoPath: photoFile.path,
+      );
 
-    expect(await db.isar.meals.get(mealId), isNotNull);
-    expect(await photoFile.exists(), isTrue);
+      expect(await db.isar.meals.get(mealId), isNotNull);
+      expect(await photoFile.exists(), isTrue);
 
-    await notifier.deleteMeal(mealId);
+      await notifier.deleteMeal(mealId);
 
-    expect(await db.isar.meals.get(mealId), isNull);
-    expect(await photoFile.exists(), isFalse);
-  });
+      expect(await db.isar.meals.get(mealId), isNull);
+      expect(await photoFile.exists(), isFalse);
+    },
+  );
 
   test('deleteMeal does not throw when photoPath is null', () async {
     final container = ProviderContainer();

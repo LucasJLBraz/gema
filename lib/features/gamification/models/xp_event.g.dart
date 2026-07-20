@@ -22,22 +22,14 @@ const XpEventSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'day': PropertySchema(
-      id: 1,
-      name: r'day',
-      type: IsarType.dateTime,
-    ),
+    r'day': PropertySchema(id: 1, name: r'day', type: IsarType.dateTime),
     r'eventType': PropertySchema(
       id: 2,
       name: r'eventType',
       type: IsarType.string,
       enumMap: _XpEventeventTypeEnumValueMap,
     ),
-    r'xpAmount': PropertySchema(
-      id: 3,
-      name: r'xpAmount',
-      type: IsarType.long,
-    )
+    r'xpAmount': PropertySchema(id: 3, name: r'xpAmount', type: IsarType.long),
   },
   estimateSize: _xpEventEstimateSize,
   serialize: _xpEventSerialize,
@@ -55,9 +47,9 @@ const XpEventSchema = CollectionSchema(
           name: r'day',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
@@ -100,7 +92,7 @@ XpEvent _xpEventDeserialize(
   object.day = reader.readDateTime(offsets[1]);
   object.eventType =
       _XpEventeventTypeValueEnumMap[reader.readStringOrNull(offsets[2])] ??
-          XpEventType.allMealsLogged;
+      XpEventType.allMealsLogged;
   object.id = id;
   object.xpAmount = reader.readLong(offsets[3]);
   return object;
@@ -119,7 +111,8 @@ P _xpEventDeserializeProp<P>(
       return (reader.readDateTime(offset)) as P;
     case 2:
       return (_XpEventeventTypeValueEnumMap[reader.readStringOrNull(offset)] ??
-          XpEventType.allMealsLogged) as P;
+              XpEventType.allMealsLogged)
+          as P;
     case 3:
       return (reader.readLong(offset)) as P;
     default:
@@ -173,10 +166,7 @@ extension XpEventQueryWhereSort on QueryBuilder<XpEvent, XpEvent, QWhere> {
 extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
   QueryBuilder<XpEvent, XpEvent, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
@@ -202,8 +192,10 @@ extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
     });
   }
 
-  QueryBuilder<XpEvent, XpEvent, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<XpEvent, XpEvent, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -211,8 +203,10 @@ extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
     });
   }
 
-  QueryBuilder<XpEvent, XpEvent, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<XpEvent, XpEvent, QAfterWhereClause> idLessThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -227,55 +221,65 @@ extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterWhereClause> dayEqualTo(DateTime day) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'day',
-        value: [day],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'day', value: [day]),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterWhereClause> dayNotEqualTo(
-      DateTime day) {
+    DateTime day,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [],
-              upper: [day],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [day],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [],
+                upper: [day],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [day],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [day],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [],
-              upper: [day],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [day],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [],
+                upper: [day],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -285,12 +289,14 @@ extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'day',
-        lower: [day],
-        includeLower: include,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'day',
+          lower: [day],
+          includeLower: include,
+          upper: [],
+        ),
+      );
     });
   }
 
@@ -299,12 +305,14 @@ extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'day',
-        lower: [],
-        upper: [day],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'day',
+          lower: [],
+          upper: [day],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
@@ -315,13 +323,15 @@ extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'day',
-        lower: [lowerDay],
-        includeLower: includeLower,
-        upper: [upperDay],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'day',
+          lower: [lowerDay],
+          includeLower: includeLower,
+          upper: [upperDay],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -329,12 +339,12 @@ extension XpEventQueryWhere on QueryBuilder<XpEvent, XpEvent, QWhereClause> {
 extension XpEventQueryFilter
     on QueryBuilder<XpEvent, XpEvent, QFilterCondition> {
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> createdAtEqualTo(
-      DateTime value) {
+    DateTime value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'createdAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'createdAt', value: value),
+      );
     });
   }
 
@@ -343,11 +353,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'createdAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'createdAt',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -356,11 +368,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'createdAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'createdAt',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -371,23 +385,25 @@ extension XpEventQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'createdAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'createdAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> dayEqualTo(
-      DateTime value) {
+    DateTime value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'day',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'day', value: value),
+      );
     });
   }
 
@@ -396,11 +412,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'day',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'day',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -409,11 +427,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'day',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'day',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -424,13 +444,15 @@ extension XpEventQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'day',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'day',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
@@ -439,11 +461,13 @@ extension XpEventQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'eventType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'eventType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -453,12 +477,14 @@ extension XpEventQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'eventType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'eventType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -468,12 +494,14 @@ extension XpEventQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'eventType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'eventType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -485,14 +513,16 @@ extension XpEventQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'eventType',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'eventType',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -501,11 +531,13 @@ extension XpEventQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'eventType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'eventType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -514,62 +546,67 @@ extension XpEventQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'eventType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'eventType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> eventTypeContains(
-      String value,
-      {bool caseSensitive = true}) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'eventType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'eventType',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> eventTypeMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'eventType',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'eventType',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> eventTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'eventType',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'eventType', value: ''),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> eventTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'eventType',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'eventType', value: ''),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
@@ -578,11 +615,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -591,11 +630,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -606,23 +647,25 @@ extension XpEventQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<XpEvent, XpEvent, QAfterFilterCondition> xpAmountEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'xpAmount',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'xpAmount', value: value),
+      );
     });
   }
 
@@ -631,11 +674,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'xpAmount',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'xpAmount',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -644,11 +689,13 @@ extension XpEventQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'xpAmount',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'xpAmount',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -659,13 +706,15 @@ extension XpEventQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'xpAmount',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'xpAmount',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -803,8 +852,9 @@ extension XpEventQueryWhereDistinct
     });
   }
 
-  QueryBuilder<XpEvent, XpEvent, QDistinct> distinctByEventType(
-      {bool caseSensitive = true}) {
+  QueryBuilder<XpEvent, XpEvent, QDistinct> distinctByEventType({
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'eventType', caseSensitive: caseSensitive);
     });

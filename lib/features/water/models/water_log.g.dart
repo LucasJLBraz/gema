@@ -17,21 +17,13 @@ const WaterLogSchema = CollectionSchema(
   name: r'WaterLog',
   id: -2141755497822994266,
   properties: {
-    r'day': PropertySchema(
-      id: 0,
-      name: r'day',
-      type: IsarType.dateTime,
-    ),
+    r'day': PropertySchema(id: 0, name: r'day', type: IsarType.dateTime),
     r'loggedAt': PropertySchema(
       id: 1,
       name: r'loggedAt',
       type: IsarType.dateTime,
     ),
-    r'ml': PropertySchema(
-      id: 2,
-      name: r'ml',
-      type: IsarType.long,
-    )
+    r'ml': PropertySchema(id: 2, name: r'ml', type: IsarType.long),
   },
   estimateSize: _waterLogEstimateSize,
   serialize: _waterLogSerialize,
@@ -49,9 +41,9 @@ const WaterLogSchema = CollectionSchema(
           name: r'day',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
@@ -144,10 +136,7 @@ extension WaterLogQueryWhereSort on QueryBuilder<WaterLog, WaterLog, QWhere> {
 extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
   QueryBuilder<WaterLog, WaterLog, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
@@ -173,8 +162,10 @@ extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
     });
   }
 
-  QueryBuilder<WaterLog, WaterLog, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<WaterLog, WaterLog, QAfterWhereClause> idGreaterThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -182,8 +173,10 @@ extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
     });
   }
 
-  QueryBuilder<WaterLog, WaterLog, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
+  QueryBuilder<WaterLog, WaterLog, QAfterWhereClause> idLessThan(
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -198,55 +191,65 @@ extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<WaterLog, WaterLog, QAfterWhereClause> dayEqualTo(DateTime day) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'day',
-        value: [day],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'day', value: [day]),
+      );
     });
   }
 
   QueryBuilder<WaterLog, WaterLog, QAfterWhereClause> dayNotEqualTo(
-      DateTime day) {
+    DateTime day,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [],
-              upper: [day],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [day],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [],
+                upper: [day],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [day],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [day],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'day',
-              lower: [],
-              upper: [day],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [day],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'day',
+                lower: [],
+                upper: [day],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
@@ -256,12 +259,14 @@ extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'day',
-        lower: [day],
-        includeLower: include,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'day',
+          lower: [day],
+          includeLower: include,
+          upper: [],
+        ),
+      );
     });
   }
 
@@ -270,12 +275,14 @@ extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'day',
-        lower: [],
-        upper: [day],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'day',
+          lower: [],
+          upper: [day],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
@@ -286,13 +293,15 @@ extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'day',
-        lower: [lowerDay],
-        includeLower: includeLower,
-        upper: [upperDay],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'day',
+          lower: [lowerDay],
+          includeLower: includeLower,
+          upper: [upperDay],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -300,12 +309,12 @@ extension WaterLogQueryWhere on QueryBuilder<WaterLog, WaterLog, QWhereClause> {
 extension WaterLogQueryFilter
     on QueryBuilder<WaterLog, WaterLog, QFilterCondition> {
   QueryBuilder<WaterLog, WaterLog, QAfterFilterCondition> dayEqualTo(
-      DateTime value) {
+    DateTime value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'day',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'day', value: value),
+      );
     });
   }
 
@@ -314,11 +323,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'day',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'day',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -327,11 +338,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'day',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'day',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -342,22 +355,23 @@ extension WaterLogQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'day',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'day',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<WaterLog, WaterLog, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
@@ -366,11 +380,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -379,11 +395,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -394,23 +412,25 @@ extension WaterLogQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<WaterLog, WaterLog, QAfterFilterCondition> loggedAtEqualTo(
-      DateTime value) {
+    DateTime value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'loggedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'loggedAt', value: value),
+      );
     });
   }
 
@@ -419,11 +439,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'loggedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'loggedAt',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -432,11 +454,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'loggedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'loggedAt',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -447,22 +471,23 @@ extension WaterLogQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'loggedAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'loggedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<WaterLog, WaterLog, QAfterFilterCondition> mlEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'ml',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'ml', value: value),
+      );
     });
   }
 
@@ -471,11 +496,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'ml',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'ml',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -484,11 +511,13 @@ extension WaterLogQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'ml',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'ml',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -499,13 +528,15 @@ extension WaterLogQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'ml',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'ml',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
