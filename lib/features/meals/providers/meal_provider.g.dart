@@ -13,9 +13,8 @@ String _$todayMealsHash() => r'6dcbf6c9acc51fcbefb181214b98a983a51b35e8';
 final todayMealsProvider = AutoDisposeStreamProvider<List<Meal>>.internal(
   todayMeals,
   name: r'todayMealsProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$todayMealsHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$todayMealsHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
@@ -54,15 +53,21 @@ class MealsForDayFamily extends Family<AsyncValue<List<Meal>>> {
   const MealsForDayFamily();
 
   /// See also [mealsForDay].
-  MealsForDayProvider call(DateTime day) {
-    return MealsForDayProvider(day);
+  MealsForDayProvider call(
+    DateTime day,
+  ) {
+    return MealsForDayProvider(
+      day,
+    );
   }
 
   @override
   MealsForDayProvider getProviderOverride(
     covariant MealsForDayProvider provider,
   ) {
-    return call(provider.day);
+    return call(
+      provider.day,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -83,18 +88,24 @@ class MealsForDayFamily extends Family<AsyncValue<List<Meal>>> {
 /// See also [mealsForDay].
 class MealsForDayProvider extends AutoDisposeStreamProvider<List<Meal>> {
   /// See also [mealsForDay].
-  MealsForDayProvider(DateTime day)
-    : this._internal(
-        (ref) => mealsForDay(ref as MealsForDayRef, day),
-        from: mealsForDayProvider,
-        name: r'mealsForDayProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$mealsForDayHash,
-        dependencies: MealsForDayFamily._dependencies,
-        allTransitiveDependencies: MealsForDayFamily._allTransitiveDependencies,
-        day: day,
-      );
+  MealsForDayProvider(
+    DateTime day,
+  ) : this._internal(
+          (ref) => mealsForDay(
+            ref as MealsForDayRef,
+            day,
+          ),
+          from: mealsForDayProvider,
+          name: r'mealsForDayProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$mealsForDayHash,
+          dependencies: MealsForDayFamily._dependencies,
+          allTransitiveDependencies:
+              MealsForDayFamily._allTransitiveDependencies,
+          day: day,
+        );
 
   MealsForDayProvider._internal(
     super._createNotifier, {
@@ -151,8 +162,7 @@ mixin MealsForDayRef on AutoDisposeStreamProviderRef<List<Meal>> {
 }
 
 class _MealsForDayProviderElement
-    extends AutoDisposeStreamProviderElement<List<Meal>>
-    with MealsForDayRef {
+    extends AutoDisposeStreamProviderElement<List<Meal>> with MealsForDayRef {
   _MealsForDayProviderElement(super.provider);
 
   @override
@@ -171,13 +181,21 @@ class MealByIdFamily extends Family<AsyncValue<Meal?>> {
   const MealByIdFamily();
 
   /// See also [mealById].
-  MealByIdProvider call(int id) {
-    return MealByIdProvider(id);
+  MealByIdProvider call(
+    int id,
+  ) {
+    return MealByIdProvider(
+      id,
+    );
   }
 
   @override
-  MealByIdProvider getProviderOverride(covariant MealByIdProvider provider) {
-    return call(provider.id);
+  MealByIdProvider getProviderOverride(
+    covariant MealByIdProvider provider,
+  ) {
+    return call(
+      provider.id,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -198,18 +216,23 @@ class MealByIdFamily extends Family<AsyncValue<Meal?>> {
 /// See also [mealById].
 class MealByIdProvider extends AutoDisposeFutureProvider<Meal?> {
   /// See also [mealById].
-  MealByIdProvider(int id)
-    : this._internal(
-        (ref) => mealById(ref as MealByIdRef, id),
-        from: mealByIdProvider,
-        name: r'mealByIdProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$mealByIdHash,
-        dependencies: MealByIdFamily._dependencies,
-        allTransitiveDependencies: MealByIdFamily._allTransitiveDependencies,
-        id: id,
-      );
+  MealByIdProvider(
+    int id,
+  ) : this._internal(
+          (ref) => mealById(
+            ref as MealByIdRef,
+            id,
+          ),
+          from: mealByIdProvider,
+          name: r'mealByIdProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$mealByIdHash,
+          dependencies: MealByIdFamily._dependencies,
+          allTransitiveDependencies: MealByIdFamily._allTransitiveDependencies,
+          id: id,
+        );
 
   MealByIdProvider._internal(
     super._createNotifier, {
@@ -224,7 +247,9 @@ class MealByIdProvider extends AutoDisposeFutureProvider<Meal?> {
   final int id;
 
   @override
-  Override overrideWith(FutureOr<Meal?> Function(MealByIdRef provider) create) {
+  Override overrideWith(
+    FutureOr<Meal?> Function(MealByIdRef provider) create,
+  ) {
     return ProviderOverride(
       origin: this,
       override: MealByIdProvider._internal(
@@ -271,20 +296,20 @@ class _MealByIdProviderElement extends AutoDisposeFutureProviderElement<Meal?>
   int get id => (origin as MealByIdProvider).id;
 }
 
-String _$mealQueueNotifierHash() => r'c934f4bcac07e495d90b1a0510e84cf42c63eb56';
+String _$mealQueueNotifierHash() => r'44f0d27adaaeb2d8238e2bfff67deb3163842c7a';
 
 /// See also [MealQueueNotifier].
 @ProviderFor(MealQueueNotifier)
 final mealQueueNotifierProvider =
     AutoDisposeAsyncNotifierProvider<MealQueueNotifier, List<Meal>>.internal(
-      MealQueueNotifier.new,
-      name: r'mealQueueNotifierProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$mealQueueNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+  MealQueueNotifier.new,
+  name: r'mealQueueNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$mealQueueNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 typedef _$MealQueueNotifier = AutoDisposeAsyncNotifier<List<Meal>>;
 // ignore_for_file: type=lint

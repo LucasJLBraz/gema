@@ -13,9 +13,8 @@ String _$totalXpHash() => r'3cb670da0ac1f48cf88e27db09b3317aba158475';
 final totalXpProvider = AutoDisposeFutureProvider<int>.internal(
   totalXp,
   name: r'totalXpProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$totalXpHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$totalXpHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
@@ -28,9 +27,8 @@ String _$xpLevelHash() => r'a0e0c19c28a07ae70019c9b9224ed65b6470f95d';
 final xpLevelProvider = AutoDisposeFutureProvider<int>.internal(
   xpLevel,
   name: r'xpLevelProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$xpLevelHash,
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$xpLevelHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
@@ -42,14 +40,13 @@ String _$xpNotifierHash() => r'c0aae759543b2dc1cc90315ca9d83e266d040383';
 @ProviderFor(XpNotifier)
 final xpNotifierProvider =
     AutoDisposeAsyncNotifierProvider<XpNotifier, int>.internal(
-      XpNotifier.new,
-      name: r'xpNotifierProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$xpNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+  XpNotifier.new,
+  name: r'xpNotifierProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$xpNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 typedef _$XpNotifier = AutoDisposeAsyncNotifier<int>;
 // ignore_for_file: type=lint

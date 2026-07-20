@@ -57,3 +57,6 @@ android/key.properties
 # Local Isar database files (created at runtime, never part of the repo)
 *.isar
 *.isar.lock
+
+# Isar core binary for local flutter test (downloaded on demand)
+libisar.so

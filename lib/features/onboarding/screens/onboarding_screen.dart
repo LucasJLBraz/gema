@@ -430,17 +430,25 @@ class _StepGoal extends StatelessWidget {
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 10),
-          ..._activityLabels.map(
-            (pair) => RadioListTile<double>(
-              title: Text(pair.$2),
-              subtitle: Text(
-                '×${pair.$1}',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              value: pair.$1,
-              groupValue: activityFactor,
-              onChanged: (v) => v != null ? onActivityChanged(v) : null,
-              dense: true,
+          RadioGroup<double>(
+            groupValue: activityFactor,
+            onChanged: (v) {
+              if (v != null) onActivityChanged(v);
+            },
+            child: Column(
+              children: [
+                ..._activityLabels.map(
+                  (pair) => RadioListTile<double>(
+                    title: Text(pair.$2),
+                    subtitle: Text(
+                      '×${pair.$1}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    value: pair.$1,
+                    dense: true,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

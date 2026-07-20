@@ -12,14 +12,13 @@ String _$todayWaterMlHash() => r'79147a6236dc157e0b8226a768e09d16dedfed38';
 @ProviderFor(TodayWaterMl)
 final todayWaterMlProvider =
     AutoDisposeAsyncNotifierProvider<TodayWaterMl, int>.internal(
-      TodayWaterMl.new,
-      name: r'todayWaterMlProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$todayWaterMlHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+  TodayWaterMl.new,
+  name: r'todayWaterMlProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$todayWaterMlHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 typedef _$TodayWaterMl = AutoDisposeAsyncNotifier<int>;
 // ignore_for_file: type=lint

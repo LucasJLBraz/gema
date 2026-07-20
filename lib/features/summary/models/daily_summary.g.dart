@@ -17,9 +17,21 @@ const DailySummarySchema = CollectionSchema(
   name: r'DailySummary',
   id: -8264136505301072183,
   properties: {
-    r'day': PropertySchema(id: 0, name: r'day', type: IsarType.dateTime),
-    r'deficit': PropertySchema(id: 1, name: r'deficit', type: IsarType.long),
-    r'isCheat': PropertySchema(id: 2, name: r'isCheat', type: IsarType.bool),
+    r'day': PropertySchema(
+      id: 0,
+      name: r'day',
+      type: IsarType.dateTime,
+    ),
+    r'deficit': PropertySchema(
+      id: 1,
+      name: r'deficit',
+      type: IsarType.long,
+    ),
+    r'isCheat': PropertySchema(
+      id: 2,
+      name: r'isCheat',
+      type: IsarType.bool,
+    ),
     r'kcalTarget': PropertySchema(
       id: 3,
       name: r'kcalTarget',
@@ -35,7 +47,11 @@ const DailySummarySchema = CollectionSchema(
       name: r'totalCarb',
       type: IsarType.long,
     ),
-    r'totalFat': PropertySchema(id: 6, name: r'totalFat', type: IsarType.long),
+    r'totalFat': PropertySchema(
+      id: 6,
+      name: r'totalFat',
+      type: IsarType.long,
+    ),
     r'totalKcal': PropertySchema(
       id: 7,
       name: r'totalKcal',
@@ -51,7 +67,11 @@ const DailySummarySchema = CollectionSchema(
       name: r'totalWaterMl',
       type: IsarType.long,
     ),
-    r'xpEarned': PropertySchema(id: 10, name: r'xpEarned', type: IsarType.long),
+    r'xpEarned': PropertySchema(
+      id: 10,
+      name: r'xpEarned',
+      type: IsarType.long,
+    )
   },
   estimateSize: _dailySummaryEstimateSize,
   serialize: _dailySummarySerialize,
@@ -69,9 +89,9 @@ const DailySummarySchema = CollectionSchema(
           name: r'day',
           type: IndexType.value,
           caseSensitive: false,
-        ),
+        )
       ],
-    ),
+    )
   },
   links: {},
   embeddedSchemas: {},
@@ -174,10 +194,7 @@ List<IsarLinkBase<dynamic>> _dailySummaryGetLinks(DailySummary object) {
 }
 
 void _dailySummaryAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  DailySummary object,
-) {
+    IsarCollection<dynamic> col, Id id, DailySummary object) {
   object.id = id;
 }
 
@@ -230,10 +247,8 @@ extension DailySummaryByIndex on IsarCollection<DailySummary> {
     return putAllByIndex(r'day', objects);
   }
 
-  List<Id> putAllByDaySync(
-    List<DailySummary> objects, {
-    bool saveLinks = true,
-  }) {
+  List<Id> putAllByDaySync(List<DailySummary> objects,
+      {bool saveLinks = true}) {
     return putAllByIndexSync(r'day', objects, saveLinks: saveLinks);
   }
 }
@@ -259,13 +274,15 @@ extension DailySummaryQueryWhere
     on QueryBuilder<DailySummary, DailySummary, QWhereClause> {
   QueryBuilder<DailySummary, DailySummary, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterWhereClause> idNotEqualTo(
-    Id id,
-  ) {
+      Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -288,9 +305,8 @@ extension DailySummaryQueryWhere
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterWhereClause> idGreaterThan(
-    Id id, {
-    bool include = false,
-  }) {
+      Id id,
+      {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -298,10 +314,8 @@ extension DailySummaryQueryWhere
     });
   }
 
-  QueryBuilder<DailySummary, DailySummary, QAfterWhereClause> idLessThan(
-    Id id, {
-    bool include = false,
-  }) {
+  QueryBuilder<DailySummary, DailySummary, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -316,67 +330,56 @@ extension DailySummaryQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.between(
-          lower: lowerId,
-          includeLower: includeLower,
-          upper: upperId,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterWhereClause> dayEqualTo(
-    DateTime day,
-  ) {
+      DateTime day) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.equalTo(indexName: r'day', value: [day]),
-      );
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'day',
+        value: [day],
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterWhereClause> dayNotEqualTo(
-    DateTime day,
-  ) {
+      DateTime day) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'day',
-                lower: [],
-                upper: [day],
-                includeUpper: false,
-              ),
-            )
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'day',
-                lower: [day],
-                includeLower: false,
-                upper: [],
-              ),
-            );
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'day',
+              lower: [],
+              upper: [day],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'day',
+              lower: [day],
+              includeLower: false,
+              upper: [],
+            ));
       } else {
         return query
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'day',
-                lower: [day],
-                includeLower: false,
-                upper: [],
-              ),
-            )
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'day',
-                lower: [],
-                upper: [day],
-                includeUpper: false,
-              ),
-            );
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'day',
+              lower: [day],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'day',
+              lower: [],
+              upper: [day],
+              includeUpper: false,
+            ));
       }
     });
   }
@@ -386,14 +389,12 @@ extension DailySummaryQueryWhere
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.between(
-          indexName: r'day',
-          lower: [day],
-          includeLower: include,
-          upper: [],
-        ),
-      );
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'day',
+        lower: [day],
+        includeLower: include,
+        upper: [],
+      ));
     });
   }
 
@@ -402,14 +403,12 @@ extension DailySummaryQueryWhere
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.between(
-          indexName: r'day',
-          lower: [],
-          upper: [day],
-          includeUpper: include,
-        ),
-      );
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'day',
+        lower: [],
+        upper: [day],
+        includeUpper: include,
+      ));
     });
   }
 
@@ -420,15 +419,13 @@ extension DailySummaryQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.between(
-          indexName: r'day',
-          lower: [lowerDay],
-          includeLower: includeLower,
-          upper: [upperDay],
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'day',
+        lower: [lowerDay],
+        includeLower: includeLower,
+        upper: [upperDay],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -436,25 +433,26 @@ extension DailySummaryQueryWhere
 extension DailySummaryQueryFilter
     on QueryBuilder<DailySummary, DailySummary, QFilterCondition> {
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition> dayEqualTo(
-    DateTime value,
-  ) {
+      DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'day', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'day',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  dayGreaterThan(DateTime value, {bool include = false}) {
+      dayGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'day',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'day',
+        value: value,
+      ));
     });
   }
 
@@ -463,13 +461,11 @@ extension DailySummaryQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'day',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'day',
+        value: value,
+      ));
     });
   }
 
@@ -480,80 +476,79 @@ extension DailySummaryQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'day',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'day',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  deficitEqualTo(int value) {
+      deficitEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'deficit', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deficit',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  deficitGreaterThan(int value, {bool include = false}) {
+      deficitGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'deficit',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deficit',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  deficitLessThan(int value, {bool include = false}) {
+      deficitLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'deficit',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deficit',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  deficitBetween(
+      deficitBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'deficit',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deficit',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition> idEqualTo(
-    Id value,
-  ) {
+      Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'id', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -562,13 +557,11 @@ extension DailySummaryQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -577,13 +570,11 @@ extension DailySummaryQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -594,464 +585,471 @@ extension DailySummaryQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'id',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  isCheatEqualTo(bool value) {
+      isCheatEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isCheat', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isCheat',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  kcalTargetEqualTo(int value) {
+      kcalTargetEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'kcalTarget', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'kcalTarget',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  kcalTargetGreaterThan(int value, {bool include = false}) {
+      kcalTargetGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'kcalTarget',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'kcalTarget',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  kcalTargetLessThan(int value, {bool include = false}) {
+      kcalTargetLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'kcalTarget',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'kcalTarget',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  kcalTargetBetween(
+      kcalTargetBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'kcalTarget',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'kcalTarget',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  mealsLoggedEqualTo(int value) {
+      mealsLoggedEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'mealsLogged', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'mealsLogged',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  mealsLoggedGreaterThan(int value, {bool include = false}) {
+      mealsLoggedGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'mealsLogged',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'mealsLogged',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  mealsLoggedLessThan(int value, {bool include = false}) {
+      mealsLoggedLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'mealsLogged',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'mealsLogged',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  mealsLoggedBetween(
+      mealsLoggedBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'mealsLogged',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'mealsLogged',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalCarbEqualTo(int value) {
+      totalCarbEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'totalCarb', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalCarb',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalCarbGreaterThan(int value, {bool include = false}) {
+      totalCarbGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'totalCarb',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalCarb',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalCarbLessThan(int value, {bool include = false}) {
+      totalCarbLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'totalCarb',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalCarb',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalCarbBetween(
+      totalCarbBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'totalCarb',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalCarb',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalFatEqualTo(int value) {
+      totalFatEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'totalFat', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalFat',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalFatGreaterThan(int value, {bool include = false}) {
+      totalFatGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'totalFat',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalFat',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalFatLessThan(int value, {bool include = false}) {
+      totalFatLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'totalFat',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalFat',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalFatBetween(
+      totalFatBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'totalFat',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalFat',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalKcalEqualTo(int value) {
+      totalKcalEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'totalKcal', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalKcal',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalKcalGreaterThan(int value, {bool include = false}) {
+      totalKcalGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'totalKcal',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalKcal',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalKcalLessThan(int value, {bool include = false}) {
+      totalKcalLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'totalKcal',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalKcal',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalKcalBetween(
+      totalKcalBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'totalKcal',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalKcal',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalProteinEqualTo(int value) {
+      totalProteinEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'totalProtein', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalProtein',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalProteinGreaterThan(int value, {bool include = false}) {
+      totalProteinGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'totalProtein',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalProtein',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalProteinLessThan(int value, {bool include = false}) {
+      totalProteinLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'totalProtein',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalProtein',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalProteinBetween(
+      totalProteinBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'totalProtein',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalProtein',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalWaterMlEqualTo(int value) {
+      totalWaterMlEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'totalWaterMl', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalWaterMl',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalWaterMlGreaterThan(int value, {bool include = false}) {
+      totalWaterMlGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'totalWaterMl',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalWaterMl',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalWaterMlLessThan(int value, {bool include = false}) {
+      totalWaterMlLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'totalWaterMl',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalWaterMl',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  totalWaterMlBetween(
+      totalWaterMlBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'totalWaterMl',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalWaterMl',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  xpEarnedEqualTo(int value) {
+      xpEarnedEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'xpEarned', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'xpEarned',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  xpEarnedGreaterThan(int value, {bool include = false}) {
+      xpEarnedGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'xpEarned',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'xpEarned',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  xpEarnedLessThan(int value, {bool include = false}) {
+      xpEarnedLessThan(
+    int value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'xpEarned',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'xpEarned',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterFilterCondition>
-  xpEarnedBetween(
+      xpEarnedBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'xpEarned',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'xpEarned',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -1107,7 +1105,7 @@ extension DailySummaryQuerySortBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  sortByKcalTargetDesc() {
+      sortByKcalTargetDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'kcalTarget', Sort.desc);
     });
@@ -1120,7 +1118,7 @@ extension DailySummaryQuerySortBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  sortByMealsLoggedDesc() {
+      sortByMealsLoggedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mealsLogged', Sort.desc);
     });
@@ -1169,7 +1167,7 @@ extension DailySummaryQuerySortBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  sortByTotalProteinDesc() {
+      sortByTotalProteinDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalProtein', Sort.desc);
     });
@@ -1182,7 +1180,7 @@ extension DailySummaryQuerySortBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  sortByTotalWaterMlDesc() {
+      sortByTotalWaterMlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalWaterMl', Sort.desc);
     });
@@ -1258,7 +1256,7 @@ extension DailySummaryQuerySortThenBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  thenByKcalTargetDesc() {
+      thenByKcalTargetDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'kcalTarget', Sort.desc);
     });
@@ -1271,7 +1269,7 @@ extension DailySummaryQuerySortThenBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  thenByMealsLoggedDesc() {
+      thenByMealsLoggedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mealsLogged', Sort.desc);
     });
@@ -1320,7 +1318,7 @@ extension DailySummaryQuerySortThenBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  thenByTotalProteinDesc() {
+      thenByTotalProteinDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalProtein', Sort.desc);
     });
@@ -1333,7 +1331,7 @@ extension DailySummaryQuerySortThenBy
   }
 
   QueryBuilder<DailySummary, DailySummary, QAfterSortBy>
-  thenByTotalWaterMlDesc() {
+      thenByTotalWaterMlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totalWaterMl', Sort.desc);
     });

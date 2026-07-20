@@ -194,7 +194,9 @@ class MealQueueNotifier extends _$MealQueueNotifier {
     await isar.writeTxn(() async {
       if (meal != null) {
         await meal.components.load();
-        final componentIds = meal.components.map((component) => component.id).toList();
+        final componentIds = meal.components
+            .map((component) => component.id)
+            .toList();
         if (componentIds.isNotEmpty) {
           await isar.mealComponents.deleteAll(componentIds);
         }

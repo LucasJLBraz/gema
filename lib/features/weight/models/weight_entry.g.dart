@@ -27,12 +27,16 @@ const WeightEntrySchema = CollectionSchema(
       name: r'measuredOn',
       type: IsarType.dateTime,
     ),
-    r'note': PropertySchema(id: 2, name: r'note', type: IsarType.string),
+    r'note': PropertySchema(
+      id: 2,
+      name: r'note',
+      type: IsarType.string,
+    ),
     r'weightKg': PropertySchema(
       id: 3,
       name: r'weightKg',
       type: IsarType.double,
-    ),
+    )
   },
   estimateSize: _weightEntryEstimateSize,
   serialize: _weightEntrySerialize,
@@ -50,9 +54,9 @@ const WeightEntrySchema = CollectionSchema(
           name: r'measuredOn',
           type: IndexType.value,
           caseSensitive: false,
-        ),
+        )
       ],
-    ),
+    )
   },
   links: {},
   embeddedSchemas: {},
@@ -133,10 +137,7 @@ List<IsarLinkBase<dynamic>> _weightEntryGetLinks(WeightEntry object) {
 }
 
 void _weightEntryAttach(
-  IsarCollection<dynamic> col,
-  Id id,
-  WeightEntry object,
-) {
+    IsarCollection<dynamic> col, Id id, WeightEntry object) {
   object.id = id;
 }
 
@@ -158,8 +159,7 @@ extension WeightEntryByIndex on IsarCollection<WeightEntry> {
   }
 
   Future<List<WeightEntry?>> getAllByMeasuredOn(
-    List<DateTime> measuredOnValues,
-  ) {
+      List<DateTime> measuredOnValues) {
     final values = measuredOnValues.map((e) => [e]).toList();
     return getAllByIndex(r'measuredOn', values);
   }
@@ -191,10 +191,8 @@ extension WeightEntryByIndex on IsarCollection<WeightEntry> {
     return putAllByIndex(r'measuredOn', objects);
   }
 
-  List<Id> putAllByMeasuredOnSync(
-    List<WeightEntry> objects, {
-    bool saveLinks = true,
-  }) {
+  List<Id> putAllByMeasuredOnSync(List<WeightEntry> objects,
+      {bool saveLinks = true}) {
     return putAllByIndexSync(r'measuredOn', objects, saveLinks: saveLinks);
   }
 }
@@ -220,13 +218,15 @@ extension WeightEntryQueryWhere
     on QueryBuilder<WeightEntry, WeightEntry, QWhereClause> {
   QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause> idNotEqualTo(
-    Id id,
-  ) {
+      Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -248,10 +248,8 @@ extension WeightEntryQueryWhere
     });
   }
 
-  QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause> idGreaterThan(
-    Id id, {
-    bool include = false,
-  }) {
+  QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause> idGreaterThan(Id id,
+      {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -259,10 +257,8 @@ extension WeightEntryQueryWhere
     });
   }
 
-  QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause> idLessThan(
-    Id id, {
-    bool include = false,
-  }) {
+  QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -277,81 +273,72 @@ extension WeightEntryQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.between(
-          lower: lowerId,
-          includeLower: includeLower,
-          upper: upperId,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause> measuredOnEqualTo(
-    DateTime measuredOn,
-  ) {
+      DateTime measuredOn) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.equalTo(indexName: r'measuredOn', value: [measuredOn]),
-      );
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'measuredOn',
+        value: [measuredOn],
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause>
-  measuredOnNotEqualTo(DateTime measuredOn) {
+      measuredOnNotEqualTo(DateTime measuredOn) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'measuredOn',
-                lower: [],
-                upper: [measuredOn],
-                includeUpper: false,
-              ),
-            )
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'measuredOn',
-                lower: [measuredOn],
-                includeLower: false,
-                upper: [],
-              ),
-            );
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'measuredOn',
+              lower: [],
+              upper: [measuredOn],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'measuredOn',
+              lower: [measuredOn],
+              includeLower: false,
+              upper: [],
+            ));
       } else {
         return query
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'measuredOn',
-                lower: [measuredOn],
-                includeLower: false,
-                upper: [],
-              ),
-            )
-            .addWhereClause(
-              IndexWhereClause.between(
-                indexName: r'measuredOn',
-                lower: [],
-                upper: [measuredOn],
-                includeUpper: false,
-              ),
-            );
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'measuredOn',
+              lower: [measuredOn],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'measuredOn',
+              lower: [],
+              upper: [measuredOn],
+              includeUpper: false,
+            ));
       }
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterWhereClause>
-  measuredOnGreaterThan(DateTime measuredOn, {bool include = false}) {
+      measuredOnGreaterThan(
+    DateTime measuredOn, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.between(
-          indexName: r'measuredOn',
-          lower: [measuredOn],
-          includeLower: include,
-          upper: [],
-        ),
-      );
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'measuredOn',
+        lower: [measuredOn],
+        includeLower: include,
+        upper: [],
+      ));
     });
   }
 
@@ -360,14 +347,12 @@ extension WeightEntryQueryWhere
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.between(
-          indexName: r'measuredOn',
-          lower: [],
-          upper: [measuredOn],
-          includeUpper: include,
-        ),
-      );
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'measuredOn',
+        lower: [],
+        upper: [measuredOn],
+        includeUpper: include,
+      ));
     });
   }
 
@@ -378,15 +363,13 @@ extension WeightEntryQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IndexWhereClause.between(
-          indexName: r'measuredOn',
-          lower: [lowerMeasuredOn],
-          includeLower: includeLower,
-          upper: [upperMeasuredOn],
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'measuredOn',
+        lower: [lowerMeasuredOn],
+        includeLower: includeLower,
+        upper: [upperMeasuredOn],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -394,74 +377,71 @@ extension WeightEntryQueryWhere
 extension WeightEntryQueryFilter
     on QueryBuilder<WeightEntry, WeightEntry, QFilterCondition> {
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  bodyFatPctIsNull() {
+      bodyFatPctIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'bodyFatPct'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'bodyFatPct',
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  bodyFatPctIsNotNull() {
+      bodyFatPctIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'bodyFatPct'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'bodyFatPct',
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  bodyFatPctEqualTo(double? value, {double epsilon = Query.epsilon}) {
+      bodyFatPctEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'bodyFatPct',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bodyFatPct',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  bodyFatPctGreaterThan(
+      bodyFatPctGreaterThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'bodyFatPct',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'bodyFatPct',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  bodyFatPctLessThan(
+      bodyFatPctLessThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'bodyFatPct',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'bodyFatPct',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  bodyFatPctBetween(
+      bodyFatPctBetween(
     double? lower,
     double? upper, {
     bool includeLower = true,
@@ -469,26 +449,24 @@ extension WeightEntryQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'bodyFatPct',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'bodyFatPct',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition> idEqualTo(
-    Id value,
-  ) {
+      Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'id', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -497,13 +475,11 @@ extension WeightEntryQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -512,13 +488,11 @@ extension WeightEntryQueryFilter
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'id',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
@@ -529,87 +503,86 @@ extension WeightEntryQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'id',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  measuredOnEqualTo(DateTime value) {
+      measuredOnEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'measuredOn', value: value),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'measuredOn',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  measuredOnGreaterThan(DateTime value, {bool include = false}) {
+      measuredOnGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'measuredOn',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'measuredOn',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  measuredOnLessThan(DateTime value, {bool include = false}) {
+      measuredOnLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'measuredOn',
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'measuredOn',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  measuredOnBetween(
+      measuredOnBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'measuredOn',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'measuredOn',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition> noteIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'note'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'note',
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  noteIsNotNull() {
+      noteIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'note'),
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'note',
+      ));
     });
   }
 
@@ -618,13 +591,11 @@ extension WeightEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -634,14 +605,12 @@ extension WeightEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -651,14 +620,12 @@ extension WeightEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -670,16 +637,14 @@ extension WeightEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'note',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'note',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -688,13 +653,11 @@ extension WeightEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -703,60 +666,54 @@ extension WeightEntryQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition> noteContains(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+      String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'note',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'note',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition> noteMatches(
-    String pattern, {
-    bool caseSensitive = true,
-  }) {
+      String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'note',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'note',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition> noteIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'note', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  noteIsNotEmpty() {
+      noteIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'note', value: ''),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'note',
+        value: '',
+      ));
     });
   }
 
@@ -765,49 +722,43 @@ extension WeightEntryQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'weightKg',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'weightKg',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  weightKgGreaterThan(
+      weightKgGreaterThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'weightKg',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'weightKg',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
   QueryBuilder<WeightEntry, WeightEntry, QAfterFilterCondition>
-  weightKgLessThan(
+      weightKgLessThan(
     double value, {
     bool include = false,
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'weightKg',
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'weightKg',
+        value: value,
+        epsilon: epsilon,
+      ));
     });
   }
 
@@ -819,16 +770,14 @@ extension WeightEntryQueryFilter
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'weightKg',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          epsilon: epsilon,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'weightKg',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
     });
   }
 }
@@ -967,9 +916,8 @@ extension WeightEntryQueryWhereDistinct
     });
   }
 
-  QueryBuilder<WeightEntry, WeightEntry, QDistinct> distinctByNote({
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<WeightEntry, WeightEntry, QDistinct> distinctByNote(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'note', caseSensitive: caseSensitive);
     });

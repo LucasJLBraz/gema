@@ -85,31 +85,35 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
             components: result.components,
           );
       final updated = await ref.read(mealByIdProvider(meal.id).future);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _meal = updated;
           _analyzing = false;
           _clarifyingQuestion = result.clarifyingQuestion;
         });
+      }
     } on gemini.GeminiRateLimitException catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _analyzing = false;
           _error =
               'Limite de requisições atingido. Aguarde ${e.retryAfterSeconds}s e tente novamente.';
         });
+      }
     } on gemini.GeminiApiException catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _analyzing = false;
           _error = e.message;
         });
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _analyzing = false;
           _error = 'Erro inesperado: $e';
         });
+      }
     }
   }
 
@@ -117,7 +121,7 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
   void _watchForCompletion(int mealId) {
     setState(() => _analyzing = true);
     Future.doWhile(() async {
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
       if (!mounted) return false;
       final updated = await ref.read(mealByIdProvider(mealId).future);
       if (updated == null || !mounted) return false;

@@ -11,6 +11,12 @@ import 'package:gema/features/meals/providers/meal_provider.dart';
 void main() {
   late Directory tempDir;
 
+  setUpAll(() async {
+    // CI runners don't have libisar.so at the repo root; download the core
+    // binary there. Locally the repo-root copy is found first, no download.
+    await Isar.initializeIsarCore(download: true);
+  });
+
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('gema_meal_provider_test_');
     db.isar = await Isar.open([

@@ -55,11 +55,12 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       await _controller!.initialize();
       if (mounted) setState(() => _initializing = false);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = 'Erro ao iniciar câmera: $e';
           _initializing = false;
         });
+      }
     }
   }
 
@@ -93,16 +94,21 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           );
           if (r.finalResult) setState(() => _listening = false);
         },
-        listenFor: const Duration(minutes: 2),
-        pauseFor: const Duration(seconds: 30),
-        localeId: 'pt_BR',
+        listenOptions: SpeechListenOptions(
+          listenFor: const Duration(minutes: 2),
+          pauseFor: const Duration(seconds: 30),
+          localeId: 'pt_BR',
+        ),
       );
     }
   }
 
   Future<void> _capture() async {
-    if (_controller == null || !_controller!.value.isInitialized || _capturing)
+    if (_controller == null ||
+        !_controller!.value.isInitialized ||
+        _capturing) {
       return;
+    }
     setState(() => _capturing = true);
     try {
       final xFile = await _controller!.takePicture();
@@ -153,7 +159,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = GemaColors.darkPrimary;
+    const primary = GemaColors.darkPrimary;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -404,9 +410,11 @@ class _GalleryContextSheetState extends State<_GalleryContextSheet> {
           _ctrl.selection = TextSelection.collapsed(offset: _ctrl.text.length);
           if (r.finalResult) setState(() => _listening = false);
         },
-        listenFor: const Duration(minutes: 2),
-        pauseFor: const Duration(seconds: 30),
-        localeId: 'pt_BR',
+        listenOptions: SpeechListenOptions(
+          listenFor: const Duration(minutes: 2),
+          pauseFor: const Duration(seconds: 30),
+          localeId: 'pt_BR',
+        ),
       );
     }
   }

@@ -131,6 +131,7 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
             ),
           if (_error != null)
             _BottomSheet(
+              surface: surface,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -153,7 +154,6 @@ class _BarcodeScreenState extends ConsumerState<BarcodeScreen> {
                   ),
                 ],
               ),
-              surface: surface,
             ),
           if (_found != null)
             _BottomSheet(
