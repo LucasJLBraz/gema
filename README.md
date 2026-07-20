@@ -9,12 +9,20 @@ macros with Gemini, logs everything locally, and projects your weight trend with
 ever requiring a backend.
 
 [![CI](https://github.com/LucasJLBraz/gema/actions/workflows/ci.yml/badge.svg)](https://github.com/LucasJLBraz/gema/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/LucasJLBraz/gema?include_prereleases&label=latest%20APK)](https://github.com/LucasJLBraz/gema/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-stable-02569B?logo=flutter)](https://flutter.dev)
 
 </div>
 
 ---
+
+## Screenshots
+
+> Screenshots aren't up yet — the current build environment has no Android emulator
+> attached to capture them from. Contributions welcome: run the app (see
+> [Getting started](#getting-started)) and open a PR adding real captures under
+> `docs/img/screenshots/`.
 
 ## What is GEMA
 
@@ -42,6 +50,45 @@ See [`docs/spec_diet_tracker_v2.md`](docs/spec_diet_tracker_v2.md) for the full
 product/architecture spec this implementation follows, and
 [`HANDOFF.md`](HANDOFF.md) for a detailed engineering status snapshot.
 
+## How it works
+
+Everything the app needs to function day-to-day lives on the device. The only two
+network calls are the Gemini estimation request and an optional Open Food Facts
+barcode lookup — both are one-shot HTTP calls, not a backend the app depends on:
+
+```mermaid
+flowchart LR
+    UI[Flutter UI\nRiverpod]
+    DB[(Isar\nlocal database)]
+    Queue[[Offline outbox queue\nworkmanager]]
+    Secure[(Secure storage\nGemini API key)]
+    Gemini{{Gemini 2.5 Flash-Lite\nstructured JSON}}
+    OFF{{Open Food Facts API}}
+
+    UI <--> DB
+    UI --> Queue
+    UI -.-> Secure
+    Queue -- "photo / text, serialized\n≥4-6s apart" --> Gemini
+    Gemini -- "kcal + macro estimate\n(min / max / point)" --> Queue
+    UI -. barcode lookup .-> OFF
+    OFF -. product data .-> UI
+```
+
+Every meal — photo, voice/text description, barcode, or manual entry — moves
+through the same status pipeline, so the UI always knows whether a number on
+screen is confirmed or still in flight:
+
+```mermaid
+stateDiagram-v2
+    [*] --> provisional: user captures / describes a meal
+    provisional --> queued: added to the offline outbox
+    queued --> processing: Gemini call starts
+    processing --> done: structured estimate received
+    processing --> error: API failure / timeout
+    error --> processing: retry, exponential backoff (1–120s)
+    done --> [*]
+```
+
 ## Features
 
 | Area | What it does |
@@ -56,6 +103,20 @@ product/architecture spec this implementation follows, and
 | **Water tracking** | One-tap water log |
 | **Data export** | Export your own data locally, no cloud round-trip |
 | **Settings** | Manage your Gemini API key and app preferences |
+
+### Weight trend: EMA smoothing + confidence-band projection
+
+Raw daily weigh-ins are noisy (glycogen, water, sodium). GEMA runs each entry
+through a time-aware exponential moving average (`τ = 7 days`, so irregular
+gaps between weigh-ins are handled correctly) and fits an OLS trend line over the
+smoothed series to project a goal date as a **range**, not a false-precision point.
+The chart below is generated from synthetic data run through the exact algorithm in
+[`lib/core/algorithms/weight_algorithms.dart`](lib/core/algorithms/weight_algorithms.dart):
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/weight_ema_dark.svg">
+  <img alt="Raw weigh-ins vs. time-aware EMA smoothing, with an OLS projection band" src="docs/img/weight_ema_light.svg" width="720">
+</picture>
 
 ## Tech stack
 
@@ -142,6 +203,13 @@ Every push and pull request to `main` runs through [GitHub Actions](.github/work
 1. **Static analysis** — `dart format --set-exit-if-changed`, `flutter analyze`, and a check that generated (`*.g.dart`) code is up to date with `build_runner`.
 2. **Tests** — full test suite with coverage, uploaded as a build artifact.
 3. **Build** — a debug APK is built and published as a downloadable workflow artifact.
+
+On every push to `main`, a separate [release workflow](.github/workflows/release.yml)
+builds a release APK and publishes it to the [**Releases** tab](https://github.com/LucasJLBraz/gema/releases/latest)
+under a rolling `latest` tag, so there's always a directly installable build of
+`main` available without cloning the repo. It's currently debug-signed (see the
+`TODO` in `android/app/build.gradle.kts`), so it installs fine for sideloading but
+isn't Play Store-ready.
 
 ## Isar schema
 
