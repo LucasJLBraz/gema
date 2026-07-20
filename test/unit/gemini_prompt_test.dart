@@ -32,4 +32,56 @@ void main() {
       expect(props.containsKey('matched_reference_food'), isFalse);
     });
   });
+
+  group('systemPromptNoCot', () {
+    test('has no numbered chain-of-thought steps', () {
+      expect(systemPromptNoCot, isNot(contains('Raciocine internamente')));
+      expect(systemPromptNoCot, isNot(contains('1. Liste os componentes')));
+    });
+
+    test('keeps every non-reasoning rule from systemPromptBaseline', () {
+      for (final rule in [
+        'INCERTEZA',
+        'TAGS',
+        'FILTRO DE PERGUNTA',
+        'EMOJI',
+        'NOME',
+        'IDIOMA',
+        'SAÍDA',
+      ]) {
+        expect(systemPromptNoCot, contains(rule));
+      }
+    });
+  });
+
+  group('systemPromptWithScale', () {
+    test('instructs the model to detect and use a visible scale reading', () {
+      expect(systemPromptWithScale, contains('balança'));
+      expect(systemPromptWithScale, contains('scale_reading_used'));
+      expect(systemPromptWithScale, contains('scale_reading_g'));
+    });
+  });
+
+  group('responseSchemaWithScale', () {
+    test('adds scale_reading_used and scale_reading_g as top-level fields', () {
+      final props =
+          responseSchemaWithScale['properties'] as Map<String, dynamic>;
+      expect(props.containsKey('scale_reading_used'), isTrue);
+      expect(props.containsKey('scale_reading_g'), isTrue);
+      expect(
+        (props['scale_reading_used'] as Map<String, dynamic>)['type'],
+        'boolean',
+      );
+      expect(
+        (props['scale_reading_g'] as Map<String, dynamic>)['nullable'],
+        isTrue,
+      );
+    });
+
+    test('responseSchemaBaseline has no scale_reading fields', () {
+      final props = responseSchemaBaseline['properties'] as Map<String, dynamic>;
+      expect(props.containsKey('scale_reading_used'), isFalse);
+      expect(props.containsKey('scale_reading_g'), isFalse);
+    });
+  });
 }

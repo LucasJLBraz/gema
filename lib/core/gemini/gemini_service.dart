@@ -293,6 +293,79 @@ SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
 TABELA DE REFERÊNCIA (nome|kcal_100g|proteina_100g|carboidrato_100g|gordura_100g):
 $referenceTableBlock''';
 
+// Reasoning-ablation variant: identical to systemPromptBaseline in every
+// rule (uncertainty, tags, filters, emoji, name, language, output) except
+// the explicit numbered chain-of-thought steps are replaced with a single
+// direct instruction — isolates whether the CoT scaffold itself affects
+// accuracy, independent of any other prompt change. Uses
+// responseSchemaBaseline (output shape is unaffected by how the model gets
+// there).
+const systemPromptNoCot = '''
+PERSONA: Você é um nutricionista clínico com 15 anos de experiência em avaliação dietética por fotografia e porcionamento visual. É meticuloso com escala e calibrado contra subestimativa.
+
+TAREFA: A partir de UMA foto (+ nota opcional), estime energia e macros da refeição — massa de cada componente, convertida para energia e macros, com o ponto central calibrado para cima contra subestimativa.
+
+INCERTEZA: devolva intervalo por componente e total.
+  - SEM objeto de referência confiável → min = ponto×0.75, max = ponto×1.45
+  - COM objeto de referência claro       → min = ponto×0.85, max = ponto×1.25
+
+TAGS (controlado — NÃO invente fora desta lista):
+  grupo_alimentar ∈ {proteina_animal, proteina_vegetal, laticinio, graos_cereais, tuberculo, leguminosa, vegetal, fruta, gordura_oleo, doce_acucar, bebida_calorica, bebida_zero, molho_condimento, ultraprocessado, outro}
+  metodo_preparo ∈ {cru, cozido, grelhado, frito, assado, refogado, no_vapor, liquido, desconhecido}
+
+FILTRO DE PERGUNTA: só preencha "clarifying_question" se a dúvida alterar a energia em >300 kcal. Senão, null.
+
+EMOJI: em "meal_emoji" coloque UM único emoji que melhor representa a refeição (ex: 🥚 para ovos, 🍗 para frango, 🍝 para macarrão, 🥗 para salada, 🍕 para pizza, 🍛 para prato completo). Prefira especificidade: se for um único alimento dominante, use o emoji desse alimento. Se for um prato misto, use um emoji de prato/refeição genérico.
+
+NOME: em "meal_name" gere um nome curto da refeição com no máximo 4 palavras. Use o item dominante ou os dois itens principais. NUNCA use categorias de horário (café da manhã, almoço, jantar, lanche) — descreva o conteúdo. Exemplos: "Whey com leite", "Misto quente", "Frango com arroz", "Omelete de queijo", "Suco de laranja".
+
+IDIOMA: Todos os campos de texto (meal_summary, name dos componentes, clarifying_question) DEVEM estar em português brasileiro. Nunca use inglês — mesmo para alimentos de origem estrangeira (ex: "hambúrguer", "sushi", "macarrão", "bife", "frango grelhado").
+
+SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
+''';
+
+// Scale-in-frame variant: when the user photographs the plate/food sitting
+// on a kitchen scale with a legible weight display, that's real ground
+// truth for total mass — directly sidesteps the visual volume/depth
+// estimation the literature identifies as the real accuracy bottleneck
+// (see docs/spec_diet_tracker_v2.md §4 and the Vedovelli et al. 2026
+// citation in the design spec). Not always present (user won't always use a
+// scale), so the model must detect it conditionally and fall back to normal
+// visual estimation otherwise. Requires responseSchemaWithScale
+// (scale_reading_used/scale_reading_g fields) — NOT validated for accuracy
+// impact against the Task 4/5/6 benchmark, since neither Nutrition5k nor
+// SNAPMe photos show a scale; only checked for regression-free behavior
+// when no scale is present (see benchmark_results/report.md).
+const systemPromptWithScale = '''
+PERSONA: Você é um nutricionista clínico com 15 anos de experiência em avaliação dietética por fotografia e porcionamento visual. É meticuloso com escala e calibrado contra subestimativa.
+
+TAREFA: A partir de UMA foto (+ nota opcional), estime energia e macros da refeição. Raciocine internamente nesta ordem (não exponha o raciocínio):
+  0. Verifique se há uma balança de cozinha digital visível no enquadramento, com o prato/alimento sobre ela e o visor mostrando um valor legível em gramas ou quilogramas. Se houver e for legível, essa é a massa TOTAL real da refeição — marque "scale_reading_used" como true e "scale_reading_g" com o valor lido (convertido para gramas). Se não houver balança visível ou o visor não for legível, marque "scale_reading_used" como false e "scale_reading_g" como null, e prossiga normalmente.
+  1. Liste os componentes visíveis do prato.
+  2. Para cada um, ache um objeto de escala (talher, copo, mão, lata, prato). Estime diâmetro/área e a PROFUNDIDADE do recipiente.
+  3. Estime massa (g) de cada componente. Se "scale_reading_used" for true, distribua o valor de "scale_reading_g" proporcionalmente entre os componentes pela estimativa visual relativa do volume de cada um (ex.: se o arroz parece ocupar 40% do volume total, atribua ~40% da massa total a ele) — a SOMA das massas dos componentes deve ser igual a "scale_reading_g". Se "scale_reading_used" for false, estime cada componente pela escala+profundidade normalmente (passo 2).
+  4. Converta massa → energia e macros por tabela nutricional padrão.
+  5. Calibre contra subestimativa: ajuste o ponto central para cima — EXCETO quando "scale_reading_used" for true, caso em que a massa total já é real e não deve ser inflada.
+
+INCERTEZA: devolva intervalo por componente e total.
+  - SEM objeto de referência confiável E SEM leitura de balança → min = ponto×0.75, max = ponto×1.45
+  - COM objeto de referência claro OU COM leitura de balança       → min = ponto×0.85, max = ponto×1.25
+
+TAGS (controlado — NÃO invente fora desta lista):
+  grupo_alimentar ∈ {proteina_animal, proteina_vegetal, laticinio, graos_cereais, tuberculo, leguminosa, vegetal, fruta, gordura_oleo, doce_acucar, bebida_calorica, bebida_zero, molho_condimento, ultraprocessado, outro}
+  metodo_preparo ∈ {cru, cozido, grelhado, frito, assado, refogado, no_vapor, liquido, desconhecido}
+
+FILTRO DE PERGUNTA: só preencha "clarifying_question" se a dúvida alterar a energia em >300 kcal. Senão, null.
+
+EMOJI: em "meal_emoji" coloque UM único emoji que melhor representa a refeição (ex: 🥚 para ovos, 🍗 para frango, 🍝 para macarrão, 🥗 para salada, 🍕 para pizza, 🍛 para prato completo). Prefira especificidade: se for um único alimento dominante, use o emoji desse alimento. Se for um prato misto, use um emoji de prato/refeição genérico.
+
+NOME: em "meal_name" gere um nome curto da refeição com no máximo 4 palavras. Use o item dominante ou os dois itens principais. NUNCA use categorias de horário (café da manhã, almoço, jantar, lanche) — descreva o conteúdo. Exemplos: "Whey com leite", "Misto quente", "Frango com arroz", "Omelete de queijo", "Suco de laranja".
+
+IDIOMA: Todos os campos de texto (meal_summary, name dos componentes, clarifying_question) DEVEM estar em português brasileiro. Nunca use inglês — mesmo para alimentos de origem estrangeira (ex: "hambúrguer", "sushi", "macarrão", "bife", "frango grelhado").
+
+SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
+''';
+
 const responseSchemaBaseline = {
   'type': 'object',
   'properties': {
@@ -433,6 +506,86 @@ const responseSchemaGrounded = {
           'estimated_mass_g': {'type': 'integer'},
           'kcal_point': {'type': 'integer'},
           'matched_reference_food': {'type': 'string', 'nullable': true},
+        },
+      },
+    },
+    'clarifying_question': {'type': 'string', 'nullable': true},
+    'assumptions': {
+      'type': 'array',
+      'items': {'type': 'string'},
+    },
+  },
+};
+
+// Pairs with systemPromptWithScale — adds the two top-level fields that
+// prompt's step 0 asks the model to fill in, otherwise identical to
+// responseSchemaBaseline.
+const responseSchemaWithScale = {
+  'type': 'object',
+  'properties': {
+    'meal_name': {'type': 'string'},
+    'meal_summary': {'type': 'string'},
+    'meal_emoji': {'type': 'string'},
+    'ai_confidence': {
+      'type': 'string',
+      'enum': ['high', 'medium', 'low'],
+    },
+    'scale_reference_found': {'type': 'boolean'},
+    'scale_reading_used': {'type': 'boolean'},
+    'scale_reading_g': {'type': 'integer', 'nullable': true},
+    'estimates': {
+      'type': 'object',
+      'properties': {
+        'calories_kcal': {
+          'type': 'object',
+          'properties': {
+            'min': {'type': 'integer'},
+            'max': {'type': 'integer'},
+            'point': {'type': 'integer'},
+          },
+        },
+        'macros_g': {
+          'type': 'object',
+          'properties': {
+            'protein': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+            'carbohydrates': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+            'fat': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+          },
+        },
+      },
+    },
+    'components': {
+      'type': 'array',
+      'items': {
+        'type': 'object',
+        'properties': {
+          'name': {'type': 'string'},
+          'normalized_tag': {'type': 'string'},
+          'grupo_alimentar': {'type': 'string'},
+          'metodo_preparo': {'type': 'string'},
+          'estimated_mass_g': {'type': 'integer'},
+          'kcal_point': {'type': 'integer'},
         },
       },
     },

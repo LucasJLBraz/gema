@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:gema/core/gemini/gemini_service.dart';
-// Deliberately not nutrition_reference_loader.dart: that file's
-// loadTacoReference() uses package:flutter/services.dart (rootBundle),
-// which transitively requires dart:ui — unavailable under plain `dart run`.
-// Read the asset via dart:io instead and reuse the pure parser.
-import 'package:gema/core/gemini/nutrition_reference.dart';
+// nutrition_reference.dart (parseTacoReferenceJson/formatReferenceTableBlock,
+// reading assets/data/taco_reference.json via dart:io rather than
+// nutrition_reference_loader.dart's rootBundle-based loadTacoReference — see
+// the git history of this file for why) is not imported in this revision
+// since the current arms list doesn't include the grounded prompt. Re-add it
+// if a future run needs 'grounded' again.
 
 // gemini-2.5-flash-lite (productionModel) is deliberately excluded from the
 // full run: a smoke test with a freshly-created API key got HTTP 404 "This
@@ -44,18 +45,26 @@ Future<void> main() async {
     exit(1);
   }
 
-  final referenceJson = File('assets/data/taco_reference.json').readAsStringSync();
-  final reference = parseTacoReferenceJson(referenceJson);
-  final referenceBlock = formatReferenceTableBlock(reference);
-
+  // 'baseline' and 'grounded' already ran in a prior invocation of this
+  // script (results are in benchmark_results/raw_results.jsonl, appended to
+  // below rather than overwritten). This run adds two arms testing
+  // user-requested follow-up questions: does removing the explicit
+  // chain-of-thought scaffold change accuracy (systemPromptNoCot, fully
+  // testable against the existing ground truth), and does the scale-in-
+  // frame instruction regress accuracy when no scale is present in the
+  // photo (systemPromptWithScale — cannot validate an *accuracy benefit*
+  // from this benchmark, since no ground-truth photo shows a scale, but can
+  // confirm it doesn't hurt when the feature correctly detects absence).
   final arms = [
-    const _Arm('baseline', systemPromptBaseline, responseSchemaBaseline),
-    _Arm('grounded', systemPromptGrounded(referenceBlock), responseSchemaGrounded),
+    const _Arm('no_cot', systemPromptNoCot, responseSchemaBaseline),
+    const _Arm('with_scale', systemPromptWithScale, responseSchemaWithScale),
   ];
 
   final rows = _readGroundTruth('benchmark_data/ground_truth.csv');
   Directory('benchmark_results').createSync(recursive: true);
-  final out = File('benchmark_results/raw_results.jsonl').openWrite();
+  final out = File(
+    'benchmark_results/raw_results.jsonl',
+  ).openWrite(mode: FileMode.append);
 
   var completed = 0;
   final total = rows.length * arms.length * _models.length;
