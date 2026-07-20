@@ -8,9 +8,11 @@ import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 
 const _apiKeyStorageKey = 'gemini_api_key';
-const _model = 'gemini-2.5-flash-lite';
-const _baseUrl =
-    'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
+const productionModel = 'gemini-2.5-flash-lite';
+
+Uri _endpointFor(String model, String apiKey) => Uri.parse(
+  'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
+);
 
 const _storage = FlutterSecureStorage();
 
@@ -79,20 +81,19 @@ class GeminiApiException implements Exception {
   final String message;
 }
 
-Future<GeminiResult> estimateMeal({
+Future<GeminiResult> callGemini({
+  required String systemPrompt,
+  required Map<String, dynamic> responseSchema,
+  required String model,
+  required String apiKey,
   String? photoPath,
   required String userNote,
   int retryCount = 0,
 }) async {
   assert(
     photoPath != null || userNote.isNotEmpty,
-    'estimateMeal requires at least a photo or a text description',
+    'callGemini requires at least a photo or a text description',
   );
-
-  final apiKey = await loadApiKey();
-  if (apiKey == null || apiKey.isEmpty) {
-    throw const GeminiApiException('API key not configured');
-  }
 
   final parts = <Map<String, dynamic>>[];
 
@@ -111,7 +112,7 @@ Future<GeminiResult> estimateMeal({
   final body = jsonEncode({
     'system_instruction': {
       'parts': [
-        {'text': _systemPrompt},
+        {'text': systemPrompt},
       ],
     },
     'contents': [
@@ -120,12 +121,12 @@ Future<GeminiResult> estimateMeal({
     'generationConfig': {
       'temperature': 0.3,
       'responseMimeType': 'application/json',
-      'responseSchema': _responseSchema,
+      'responseSchema': responseSchema,
     },
   });
 
-  final uri = Uri.parse('$_baseUrl?key=$apiKey');
-  debugPrint('[Gemini] POST $_model (attempt ${retryCount + 1})');
+  final uri = _endpointFor(model, apiKey);
+  debugPrint('[Gemini] POST $model (attempt ${retryCount + 1})');
   final response = await http.post(
     uri,
     headers: {'Content-Type': 'application/json'},
@@ -156,6 +157,27 @@ Future<GeminiResult> estimateMeal({
   final parsed = jsonDecode(text) as Map<String, dynamic>;
 
   return _parseResult(parsed, text);
+}
+
+Future<GeminiResult> estimateMeal({
+  String? photoPath,
+  required String userNote,
+  int retryCount = 0,
+}) async {
+  final apiKey = await loadApiKey();
+  if (apiKey == null || apiKey.isEmpty) {
+    throw const GeminiApiException('API key not configured');
+  }
+
+  return callGemini(
+    systemPrompt: systemPromptBaseline,
+    responseSchema: responseSchemaBaseline,
+    model: productionModel,
+    apiKey: apiKey,
+    photoPath: photoPath,
+    userNote: userNote,
+    retryCount: retryCount,
+  );
 }
 
 Future<List<int>> _compressImage(String path) async {
@@ -218,7 +240,7 @@ GeminiResult _parseResult(Map<String, dynamic> j, String rawJson) {
   );
 }
 
-const _systemPrompt = '''
+const systemPromptBaseline = '''
 PERSONA: Você é um nutricionista clínico com 15 anos de experiência em avaliação dietética por fotografia e porcionamento visual. É meticuloso com escala e calibrado contra subestimativa.
 
 TAREFA: A partir de UMA foto (+ nota opcional), estime energia e macros da refeição. Raciocine internamente nesta ordem (não exponha o raciocínio):
@@ -247,7 +269,38 @@ IDIOMA: Todos os campos de texto (meal_summary, name dos componentes, clarifying
 SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
 ''';
 
-const _responseSchema = {
+String systemPromptGrounded(String referenceTableBlock) => '''
+PERSONA: Você é um nutricionista clínico com 15 anos de experiência em avaliação dietética por fotografia e porcionamento visual. É meticuloso com escala e calibrado contra subestimativa.
+
+TAREFA: A partir de UMA foto (+ nota opcional), estime energia e macros da refeição. Raciocine internamente nesta ordem (não exponha o raciocínio):
+  1. Liste os componentes visíveis do prato.
+  2. Para cada um, ache um objeto de escala (talher, copo, mão, lata, prato). Estime diâmetro/área e a PROFUNDIDADE do recipiente.
+  3. Estime massa (g) de cada componente a partir da escala+profundidade.
+  4. Para cada componente, procure a entrada mais próxima na TABELA DE REFERÊNCIA abaixo (alimentos brasileiros comuns, valores por 100g). Se encontrar um equivalente razoável, use os valores dela para calcular energia e macros a partir da massa estimada, e preencha "matched_reference_food" com o nome EXATO da entrada usada. Se não houver equivalente razoável, estime por conhecimento próprio e deixe "matched_reference_food" como null.
+  5. Calibre contra subestimativa: ajuste o ponto central para cima.
+
+INCERTEZA: devolva intervalo por componente e total.
+  - SEM objeto de referência confiável → min = ponto×0.75, max = ponto×1.45
+  - COM objeto de referência claro       → min = ponto×0.85, max = ponto×1.25
+
+TAGS (controlado — NÃO invente fora desta lista):
+  grupo_alimentar ∈ {proteina_animal, proteina_vegetal, laticinio, graos_cereais, tuberculo, leguminosa, vegetal, fruta, gordura_oleo, doce_acucar, bebida_calorica, bebida_zero, molho_condimento, ultraprocessado, outro}
+  metodo_preparo ∈ {cru, cozido, grelhado, frito, assado, refogado, no_vapor, liquido, desconhecido}
+
+FILTRO DE PERGUNTA: só preencha "clarifying_question" se a dúvida alterar a energia em >300 kcal. Senão, null.
+
+EMOJI: em "meal_emoji" coloque UM único emoji que melhor representa a refeição (ex: 🥚 para ovos, 🍗 para frango, 🍝 para macarrão, 🥗 para salada, 🍕 para pizza, 🍛 para prato completo). Prefira especificidade: se for um único alimento dominante, use o emoji desse alimento. Se for um prato misto, use um emoji de prato/refeição genérico.
+
+NOME: em "meal_name" gere um nome curto da refeição com no máximo 4 palavras. Use o item dominante ou os dois itens principais. NUNCA use categorias de horário (café da manhã, almoço, jantar, lanche) — descreva o conteúdo. Exemplos: "Whey com leite", "Misto quente", "Frango com arroz", "Omelete de queijo", "Suco de laranja".
+
+IDIOMA: Todos os campos de texto (meal_summary, name dos componentes, clarifying_question) DEVEM estar em português brasileiro. Nunca use inglês — mesmo para alimentos de origem estrangeira (ex: "hambúrguer", "sushi", "macarrão", "bife", "frango grelhado").
+
+SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
+
+TABELA DE REFERÊNCIA (nome|kcal_100g|proteina_100g|carboidrato_100g|gordura_100g):
+$referenceTableBlock''';
+
+const responseSchemaBaseline = {
   'type': 'object',
   'properties': {
     'meal_name': {'type': 'string'},
@@ -311,6 +364,82 @@ const _responseSchema = {
           'metodo_preparo': {'type': 'string'},
           'estimated_mass_g': {'type': 'integer'},
           'kcal_point': {'type': 'integer'},
+        },
+      },
+    },
+    'clarifying_question': {'type': 'string', 'nullable': true},
+    'assumptions': {
+      'type': 'array',
+      'items': {'type': 'string'},
+    },
+  },
+};
+
+const responseSchemaGrounded = {
+  'type': 'object',
+  'properties': {
+    'meal_name': {'type': 'string'},
+    'meal_summary': {'type': 'string'},
+    'meal_emoji': {'type': 'string'},
+    'ai_confidence': {
+      'type': 'string',
+      'enum': ['high', 'medium', 'low'],
+    },
+    'scale_reference_found': {'type': 'boolean'},
+    'estimates': {
+      'type': 'object',
+      'properties': {
+        'calories_kcal': {
+          'type': 'object',
+          'properties': {
+            'min': {'type': 'integer'},
+            'max': {'type': 'integer'},
+            'point': {'type': 'integer'},
+          },
+        },
+        'macros_g': {
+          'type': 'object',
+          'properties': {
+            'protein': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+            'carbohydrates': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+            'fat': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+          },
+        },
+      },
+    },
+    'components': {
+      'type': 'array',
+      'items': {
+        'type': 'object',
+        'properties': {
+          'name': {'type': 'string'},
+          'normalized_tag': {'type': 'string'},
+          'grupo_alimentar': {'type': 'string'},
+          'metodo_preparo': {'type': 'string'},
+          'estimated_mass_g': {'type': 'integer'},
+          'kcal_point': {'type': 'integer'},
+          'matched_reference_food': {'type': 'string', 'nullable': true},
         },
       },
     },
