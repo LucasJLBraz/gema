@@ -149,7 +149,9 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
   }
 
   Future<void> _discardAndExit() async {
-    await ref.read(mealQueueNotifierProvider.notifier).deleteMeal(widget.mealId);
+    await ref
+        .read(mealQueueNotifierProvider.notifier)
+        .deleteMeal(widget.mealId);
     if (mounted) context.go('/home');
   }
 
@@ -207,300 +209,304 @@ class _ConfirmMealScreenState extends ConsumerState<ConfirmMealScreen> {
           ),
         ),
         body: SafeArea(
-        child: meal == null
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Photo thumbnail
-                    if (meal.photoPath != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Image.file(
-                          File(meal.photoPath!),
-                          width: double.infinity,
-                          height: 180,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else
-                      Container(
-                        width: double.infinity,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: surfaceVar,
+          child: meal == null
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Photo thumbnail
+                      if (meal.photoPath != null)
+                        ClipRRect(
                           borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '📷 Sem foto',
-                            style: GemaTextStyles.body.copyWith(color: textDis),
+                          child: Image.file(
+                            File(meal.photoPath!),
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      else
+                        Container(
+                          width: double.infinity,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: surfaceVar,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '📷 Sem foto',
+                              style: GemaTextStyles.body.copyWith(
+                                color: textDis,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Analyzing state
-                    if (_analyzing) ...[
-                      const Center(child: CircularProgressIndicator()),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: Text(
-                          'Analisando com Gemini...',
-                          style: GemaTextStyles.body.copyWith(color: textSub),
+                      // Analyzing state
+                      if (_analyzing) ...[
+                        const Center(child: CircularProgressIndicator()),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Text(
+                            'Analisando com Gemini...',
+                            style: GemaTextStyles.body.copyWith(color: textSub),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+                        const SizedBox(height: 24),
+                      ],
 
-                    // Error
-                    if (_error != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? GemaColors.darkErrorCont
-                              : GemaColors.lightErrorCont,
-                          borderRadius: BorderRadius.circular(12),
+                      // Error
+                      if (_error != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? GemaColors.darkErrorCont
+                                : GemaColors.lightErrorCont,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _error!,
+                                style: GemaTextStyles.body.copyWith(
+                                  color: isDark
+                                      ? GemaColors.darkOnErrCont
+                                      : GemaColors.lightOnErrCont,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              TextButton.icon(
+                                onPressed: _retry,
+                                icon: const Icon(Icons.refresh, size: 16),
+                                label: const Text('Tentar novamente'),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Confidence badge
+                      if (meal.aiConfidence != null) ...[
+                        Row(
                           children: [
                             Text(
-                              _error!,
-                              style: GemaTextStyles.body.copyWith(
-                                color: isDark
-                                    ? GemaColors.darkOnErrCont
-                                    : GemaColors.lightOnErrCont,
+                              _confidenceText(meal.aiConfidence!),
+                              style: GemaTextStyles.label.copyWith(
+                                color: _confidenceColor(
+                                  meal.aiConfidence!,
+                                  isDark,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            TextButton.icon(
-                              onPressed: _retry,
-                              icon: const Icon(Icons.refresh, size: 16),
-                              label: const Text('Tentar novamente'),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Confidence badge
-                    if (meal.aiConfidence != null) ...[
-                      Row(
-                        children: [
-                          Text(
-                            _confidenceText(meal.aiConfidence!),
-                            style: GemaTextStyles.label.copyWith(
-                              color: _confidenceColor(
-                                meal.aiConfidence!,
-                                isDark,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _confidenceHint(meal.aiConfidence!),
-                              style: GemaTextStyles.micro.copyWith(
-                                color: textDis,
-                                letterSpacing: 0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-
-                    // AI meal summary
-                    if (!_analyzing && aiSummary.isNotEmpty) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: surfaceVar,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          aiSummary,
-                          style: GemaTextStyles.body.copyWith(color: text),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-
-                    // Components list
-                    if (!_analyzing && aiComponents.isNotEmpty) ...[
-                      Text(
-                        'COMPONENTES',
-                        style: GemaTextStyles.caption.copyWith(color: textSub),
-                      ),
-                      const SizedBox(height: 8),
-                      ...aiComponents.map(
-                        (c) => _ComponentRow(
-                          component: c,
-                          surfaceVar: surfaceVar,
-                          text: text,
-                          textSub: textSub,
-                          primary: primary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                    ],
-
-                    // Clarifying question
-                    if (_clarifyingQuestion != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? GemaColors.darkPrimaryCont
-                              : GemaColors.lightPrimaryCont,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('⚠️', style: TextStyle(fontSize: 16)),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                _clarifyingQuestion!,
-                                style: GemaTextStyles.body.copyWith(
-                                  color: isDark
-                                      ? GemaColors.darkOnPrimCont
-                                      : GemaColors.lightOnPrimCont,
+                                _confidenceHint(meal.aiConfidence!),
+                                style: GemaTextStyles.micro.copyWith(
+                                  color: textDis,
+                                  letterSpacing: 0,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
+                        const SizedBox(height: 14),
+                      ],
 
-                    // Interval display
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: surfaceVar,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _IntervalCell(
-                            label: 'Mínimo',
-                            value: '${meal.kcalMin}',
+                      // AI meal summary
+                      if (!_analyzing && aiSummary.isNotEmpty) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: surfaceVar,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            aiSummary,
+                            style: GemaTextStyles.body.copyWith(color: text),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+
+                      // Components list
+                      if (!_analyzing && aiComponents.isNotEmpty) ...[
+                        Text(
+                          'COMPONENTES',
+                          style: GemaTextStyles.caption.copyWith(
+                            color: textSub,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ...aiComponents.map(
+                          (c) => _ComponentRow(
+                            component: c,
+                            surfaceVar: surfaceVar,
                             text: text,
                             textSub: textSub,
+                            primary: primary,
                           ),
-                          Column(
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+
+                      // Clarifying question
+                      if (_clarifyingQuestion != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? GemaColors.darkPrimaryCont
+                                : GemaColors.lightPrimaryCont,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '${meal.kcalPoint}',
-                                style: GemaTextStyles.display.copyWith(
-                                  color: primary,
-                                  fontSize: 28,
-                                  letterSpacing: -1,
-                                ),
-                              ),
-                              Text(
-                                'kcal',
-                                style: GemaTextStyles.micro.copyWith(
-                                  color: textSub,
-                                  letterSpacing: 0,
+                              const Text('⚠️', style: TextStyle(fontSize: 16)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _clarifyingQuestion!,
+                                  style: GemaTextStyles.body.copyWith(
+                                    color: isDark
+                                        ? GemaColors.darkOnPrimCont
+                                        : GemaColors.lightOnPrimCont,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          _IntervalCell(
-                            label: 'Máximo',
-                            value: '${meal.kcalMax}',
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+
+                      // Interval display
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: surfaceVar,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _IntervalCell(
+                              label: 'Mínimo',
+                              value: '${meal.kcalMin}',
+                              text: text,
+                              textSub: textSub,
+                            ),
+                            Column(
+                              children: [
+                                Text(
+                                  '${meal.kcalPoint}',
+                                  style: GemaTextStyles.display.copyWith(
+                                    color: primary,
+                                    fontSize: 28,
+                                    letterSpacing: -1,
+                                  ),
+                                ),
+                                Text(
+                                  'kcal',
+                                  style: GemaTextStyles.micro.copyWith(
+                                    color: textSub,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            _IntervalCell(
+                              label: 'Máximo',
+                              value: '${meal.kcalMax}',
+                              text: text,
+                              textSub: textSub,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Kcal stepper
+                      _KcalStepper(
+                        value: meal.kcalPoint,
+                        isDark: isDark,
+                        onChanged: (v) async {
+                          await ref
+                              .read(mealQueueNotifierProvider.notifier)
+                              .updateKcalPoint(meal.id, v);
+                          final updated = await ref.read(
+                            mealByIdProvider(meal.id).future,
+                          );
+                          if (mounted) setState(() => _meal = updated);
+                        },
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Macros ajustados proporcionalmente',
+                        style: GemaTextStyles.micro.copyWith(
+                          color: textDis,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Macro chips
+                      Row(
+                        children: [
+                          _MacroChip(
+                            label: 'P',
+                            value: '${meal.proteinPoint}g',
+                            color: proteinColor,
+                            surfaceVar: surfaceVar,
+                            text: text,
+                            textSub: textSub,
+                          ),
+                          const SizedBox(width: 8),
+                          _MacroChip(
+                            label: 'C',
+                            value: '${meal.carbPoint}g',
+                            color: carbColor,
+                            surfaceVar: surfaceVar,
+                            text: text,
+                            textSub: textSub,
+                          ),
+                          const SizedBox(width: 8),
+                          _MacroChip(
+                            label: 'G',
+                            value: '${meal.fatPoint}g',
+                            color: fatColor,
+                            surfaceVar: surfaceVar,
                             text: text,
                             textSub: textSub,
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 14),
+                      const SizedBox(height: 24),
 
-                    // Kcal stepper
-                    _KcalStepper(
-                      value: meal.kcalPoint,
-                      isDark: isDark,
-                      onChanged: (v) async {
-                        await ref
-                            .read(mealQueueNotifierProvider.notifier)
-                            .updateKcalPoint(meal.id, v);
-                        final updated = await ref.read(
-                          mealByIdProvider(meal.id).future,
-                        );
-                        if (mounted) setState(() => _meal = updated);
-                      },
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Macros ajustados proporcionalmente',
-                      style: GemaTextStyles.micro.copyWith(
-                        color: textDis,
-                        letterSpacing: 0,
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _analyzing ? null : _save,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: primary,
+                            foregroundColor: onPrimary,
+                          ),
+                          child: const Text('Salvar refeição'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Macro chips
-                    Row(
-                      children: [
-                        _MacroChip(
-                          label: 'P',
-                          value: '${meal.proteinPoint}g',
-                          color: proteinColor,
-                          surfaceVar: surfaceVar,
-                          text: text,
-                          textSub: textSub,
-                        ),
-                        const SizedBox(width: 8),
-                        _MacroChip(
-                          label: 'C',
-                          value: '${meal.carbPoint}g',
-                          color: carbColor,
-                          surfaceVar: surfaceVar,
-                          text: text,
-                          textSub: textSub,
-                        ),
-                        const SizedBox(width: 8),
-                        _MacroChip(
-                          label: 'G',
-                          value: '${meal.fatPoint}g',
-                          color: fatColor,
-                          surfaceVar: surfaceVar,
-                          text: text,
-                          textSub: textSub,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _analyzing ? null : _save,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: primary,
-                          foregroundColor: onPrimary,
-                        ),
-                        child: const Text('Salvar refeição'),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
         ),
       ),
     );
