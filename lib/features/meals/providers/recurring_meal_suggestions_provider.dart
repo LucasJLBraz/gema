@@ -39,7 +39,8 @@ Future<List<MealSuggestion>> recurringMealSuggestions(
       .findAll();
 
   final withinTimeOfDay = candidates.where(
-    (meal) => _timeOfDayDiffMinutes(meal.capturedAt, now) <= _timeOfDayWindowMinutes,
+    (meal) =>
+        _timeOfDayDiffMinutes(meal.capturedAt, now) <= _timeOfDayWindowMinutes,
   );
 
   final withText = <(Meal, String)>[];

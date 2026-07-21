@@ -66,55 +66,65 @@ void main() {
     return meal.id;
   }
 
-  test('returns candidates within the 14-day / ±90min window, grouped by similarity', () async {
-    final now = DateTime.now();
+  test(
+    'returns candidates within the 14-day / ±90min window, grouped by similarity',
+    () async {
+      final now = DateTime.now();
 
-    // Same breakfast, 3 different days, within the time window -> one group.
-    await insertDoneMeal(
-      capturedAt: now.subtract(const Duration(days: 5)),
-      userNote: 'café com leite e pão',
-    );
-    await insertDoneMeal(
-      capturedAt: now.subtract(const Duration(days: 2)),
-      userNote: 'café com leite e pão',
-    );
-    final mostRecentId = await insertDoneMeal(
-      capturedAt: now.subtract(const Duration(minutes: 30)),
-      userNote: 'café com leite e pão',
-    );
+      // Same breakfast, 3 different days, within the time window -> one group.
+      await insertDoneMeal(
+        capturedAt: now.subtract(const Duration(days: 5)),
+        userNote: 'café com leite e pão',
+      );
+      await insertDoneMeal(
+        capturedAt: now.subtract(const Duration(days: 2)),
+        userNote: 'café com leite e pão',
+      );
+      final mostRecentId = await insertDoneMeal(
+        capturedAt: now.subtract(const Duration(minutes: 30)),
+        userNote: 'café com leite e pão',
+      );
 
-    // Unrelated meal, also within the time window -> separate group.
-    final saladId = await insertDoneMeal(
-      capturedAt: now.subtract(const Duration(days: 1)),
-      userNote: 'salada de frutas',
-    );
+      // Unrelated meal, also within the time window -> separate group.
+      final saladId = await insertDoneMeal(
+        capturedAt: now.subtract(const Duration(days: 1)),
+        userNote: 'salada de frutas',
+      );
 
-    // Outside the 14-day window -> excluded.
-    await insertDoneMeal(
-      capturedAt: now.subtract(const Duration(days: 20)),
-      userNote: 'café com leite e pão',
-    );
+      // Outside the 14-day window -> excluded.
+      await insertDoneMeal(
+        capturedAt: now.subtract(const Duration(days: 20)),
+        userNote: 'café com leite e pão',
+      );
 
-    // Outside the ±90min time-of-day window -> excluded.
-    await insertDoneMeal(
-      capturedAt: DateTime(now.year, now.month, now.day)
-          .add(const Duration(hours: 3))
-          .subtract(now.hour >= 3 ? Duration.zero : const Duration(days: 0)),
-      userNote: 'jantar tardio',
-    );
+      // Outside the ±90min time-of-day window -> excluded. A 6-hour offset
+      // from `now`'s time-of-day is always >90min away in either direction,
+      // regardless of what time the suite happens to run.
+      final outsideWindowTimeOfDay = now.add(const Duration(hours: 6));
+      await insertDoneMeal(
+        capturedAt: DateTime(
+          now.year,
+          now.month,
+          now.day,
+          outsideWindowTimeOfDay.hour,
+          outsideWindowTimeOfDay.minute,
+        ),
+        userNote: 'jantar tardio',
+      );
 
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
 
-    final result = await container.read(
-      recurringMealSuggestionsProvider.future,
-    );
+      final result = await container.read(
+        recurringMealSuggestionsProvider.future,
+      );
 
-    expect(result.length, 2);
-    expect(result[0].mealId, mostRecentId);
-    expect(result[0].displayText, 'café com leite e pão');
-    expect(result[1].mealId, saladId);
-  });
+      expect(result.length, 2);
+      expect(result[0].mealId, mostRecentId);
+      expect(result[0].displayText, 'café com leite e pão');
+      expect(result[1].mealId, saladId);
+    },
+  );
 
   test('falls back to component names when userNote is empty', () async {
     final now = DateTime.now();
