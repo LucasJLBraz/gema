@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:gema/core/gemini/gemini_service.dart';
-// nutrition_reference.dart (parseTacoReferenceJson/formatReferenceTableBlock)
-// is not needed for the current arms list, which doesn't use the TACO
-// table. Re-add it (reading assets/data/taco_reference.json via dart:io,
-// not nutrition_reference_loader.dart's rootBundle-based loadTacoReference,
-// which needs a Flutter engine unavailable under plain `dart run`) if a
-// future run needs 'grounded' or 'combined' again.
+// The TACO reference-table loader/asset were removed as unused dead code
+// (never wired into estimateMeal or this benchmark's current arms list).
+// If a future run needs 'grounded' or 'combined' again, rebuild a table
+// loader that reads the source TACO data directly via dart:io — don't
+// resurrect the old rootBundle-based approach, which needs a Flutter
+// engine unavailable under plain `dart run`.
 
 // gemini-2.5-flash-lite (productionModel) is deliberately excluded from the
 // full run: a smoke test with a freshly-created API key got HTTP 404 "This
