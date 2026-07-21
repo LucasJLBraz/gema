@@ -34,7 +34,7 @@ don't control**.
   the device. There is no backend — the app works fully offline except for the AI
   estimation call itself.
 - **AI meal estimation.** Take a photo, type a quick description, or use voice input;
-  [Gemini 2.5 Flash-Lite](https://ai.google.dev) is called directly from the device
+  [Gemini 3.1 Flash-Lite](https://ai.google.dev) is called directly from the device
   with structured JSON output to estimate calories and macros as a **range**
   (min/max/point), not a false-precision single number.
 - **Bring your own API key.** You provide your own free-tier Gemini API key during
@@ -62,7 +62,7 @@ flowchart LR
     DB[(Isar\nlocal database)]
     Queue[[Offline outbox queue\nworkmanager]]
     Secure[(Secure storage\nGemini API key)]
-    Gemini{{Gemini 2.5 Flash-Lite\nstructured JSON}}
+    Gemini{{Gemini 3.1 Flash-Lite\nstructured JSON}}
     OFF{{Open Food Facts API}}
 
     UI <--> DB
