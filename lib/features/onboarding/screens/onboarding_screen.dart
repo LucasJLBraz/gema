@@ -531,23 +531,23 @@ class _StepConfig extends StatelessWidget {
                   number: '2',
                   primary: primary,
                   text:
-                      'Clique em "Get API key" no menu lateral esquerdo. Em seguida, "Create API key".',
+                      'No menu à esquerda, clique em "Get API key". Em seguida, clique em "Create API key".',
                 ),
                 _Step(
                   number: '3',
                   primary: primary,
                   text:
-                      'Selecione "Create API key in new project" (ou escolha um projeto existente). Clique em "Create".',
+                      'Selecione "Create API key in new project" (ou escolha um projeto existente, se já tiver um). Clique em "Create".',
                 ),
                 _Step(
                   number: '4',
                   primary: primary,
                   text:
-                      'Copie a chave gerada — ela começa com "AIza". Cole no campo abaixo.',
+                      'Copie a chave gerada — ela começa com "AQ". Cole no campo abaixo.',
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'A chave gratuita tem limite de 15 requisições/minuto e 1.000/dia — suficiente para uso pessoal normal.',
+                  'A chave gratuita tem limite de 15 requisições/minuto e 1.500/dia — suficiente para uso pessoal normal.',
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: textSub),
@@ -565,7 +565,7 @@ class _StepConfig extends StatelessWidget {
             enableSuggestions: false,
             decoration: InputDecoration(
               labelText: 'Chave da API Gemini',
-              hintText: 'AIza...',
+              hintText: 'AQ...',
               suffixIcon: IconButton(
                 icon: Icon(visible ? Icons.visibility_off : Icons.visibility),
                 onPressed: onToggleVisibility,

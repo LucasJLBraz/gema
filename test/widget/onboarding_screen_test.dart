@@ -120,4 +120,40 @@ void main() {
       expect(fakeLauncher.launchedUrl, 'https://aistudio.google.com');
     },
   );
+
+  testWidgets(
+    'step 4 shows the current API-key format and rate limits, not the stale ones',
+    (tester) async {
+      await pumpOnboarding(tester);
+
+      await tester.enterText(
+        find.byKey(const Key('onboarding-weight-field')),
+        '80',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-height-field')),
+        '178',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-age-field')),
+        '30',
+      );
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+
+      // Stale copy must be gone.
+      expect(find.textContaining('AIza'), findsNothing);
+      expect(find.textContaining('1.000/dia'), findsNothing);
+
+      // Current copy must be present.
+      expect(find.textContaining('AQ'), findsWidgets);
+      expect(find.textContaining('1.500/dia'), findsOneWidget);
+      expect(find.textContaining('gratuito'), findsWidgets);
+    },
+  );
 }
