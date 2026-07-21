@@ -1,0 +1,77 @@
+<svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,-apple-system,Segoe UI,sans-serif">
+<rect x="0" y="0" width="760" height="400" fill="#1C1916" rx="12"/>
+<text x="380" y="20" text-anchor="middle" font-size="12" fill="#A8957E">MAPE by prompt arm — 100-photo benchmark, lower is better</text>
+
+<!-- gridlines -->
+<line x1="260" y1="30" x2="260" y2="292" stroke="#2A2420" stroke-width="1"/>
+<line x1="342" y1="30" x2="342" y2="292" stroke="#2A2420" stroke-width="1"/>
+<line x1="424" y1="30" x2="424" y2="292" stroke="#2A2420" stroke-width="1"/>
+<line x1="506" y1="30" x2="506" y2="292" stroke="#2A2420" stroke-width="1"/>
+<line x1="588" y1="30" x2="588" y2="292" stroke="#2A2420" stroke-width="1"/>
+<line x1="670" y1="30" x2="670" y2="292" stroke="#2A2420" stroke-width="1"/>
+
+<!-- baseline reference -->
+<line x1="585.9" y1="34" x2="585.9" y2="296" stroke="#A8957E" stroke-width="1.5" stroke-dasharray="4,3" stroke-opacity="0.6"/>
+<text x="585.9" y="27" text-anchor="middle" font-size="10" fill="#A8957E">baseline 79.5%</text>
+
+<!-- bars: no_cot 55.9% -->
+<rect x="260" y="38" width="229.2" height="20" rx="4" ry="4" fill="#736A60"/>
+<rect x="260" y="38" width="4" height="20" fill="#736A60"/>
+<text x="252" y="52" text-anchor="end" font-size="12" fill="#A8957E">no_cot</text>
+<text x="497" y="52" font-size="12" fill="#A8957E" style="font-variant-numeric:tabular-nums">55.9%</text>
+
+<!-- with_scale 56.8% -->
+<rect x="260" y="76" width="232.9" height="20" rx="4" ry="4" fill="#736A60"/>
+<rect x="260" y="76" width="4" height="20" fill="#736A60"/>
+<text x="252" y="90" text-anchor="end" font-size="12" fill="#A8957E">with_scale</text>
+<text x="500.9" y="90" font-size="12" fill="#A8957E" style="font-variant-numeric:tabular-nums">56.8%</text>
+
+<!-- no_cot_with_scale_reasoning 57.4% — SHIPPED -->
+<rect x="260" y="114" width="235.3" height="20" rx="4" ry="4" fill="#F4BA52"/>
+<rect x="260" y="114" width="4" height="20" fill="#F4BA52"/>
+<text x="252" y="128" text-anchor="end" font-size="12" font-weight="600" fill="#EDE4D8">no_cot_with_scale_reasoning</text>
+<text x="503.3" y="128" font-size="12" font-weight="700" fill="#F4BA52" style="font-variant-numeric:tabular-nums">57.4% — shipped</text>
+
+<!-- grounded 74.9% -->
+<rect x="260" y="152" width="307.1" height="20" rx="4" ry="4" fill="#736A60"/>
+<rect x="260" y="152" width="4" height="20" fill="#736A60"/>
+<text x="252" y="166" text-anchor="end" font-size="12" fill="#A8957E">grounded</text>
+<text x="575.1" y="166" font-size="12" fill="#A8957E" style="font-variant-numeric:tabular-nums">74.9%</text>
+
+<!-- combined 76.9% -->
+<rect x="260" y="190" width="315.3" height="20" rx="4" ry="4" fill="#736A60"/>
+<rect x="260" y="190" width="4" height="20" fill="#736A60"/>
+<text x="252" y="204" text-anchor="end" font-size="12" fill="#A8957E">combined</text>
+<text x="583.3" y="204" font-size="12" fill="#A8957E" style="font-variant-numeric:tabular-nums">76.9%</text>
+
+<!-- baseline 79.5% -->
+<rect x="260" y="228" width="325.9" height="20" rx="4" ry="4" fill="#736A60"/>
+<rect x="260" y="228" width="4" height="20" fill="#736A60"/>
+<text x="252" y="242" text-anchor="end" font-size="12" font-weight="600" fill="#EDE4D8">baseline</text>
+<text x="593.9" y="242" font-size="12" font-weight="600" fill="#EDE4D8" style="font-variant-numeric:tabular-nums">79.5%</text>
+
+<!-- no_cot_with_scale 95.7% -->
+<rect x="260" y="266" width="392.4" height="20" rx="4" ry="4" fill="#736A60"/>
+<rect x="260" y="266" width="4" height="20" fill="#736A60"/>
+<text x="252" y="280" text-anchor="end" font-size="12" fill="#A8957E">no_cot_with_scale</text>
+<text x="660.4" y="280" font-size="12" fill="#A8957E" style="font-variant-numeric:tabular-nums">95.7%</text>
+
+<!-- axis -->
+<line x1="260" y1="34" x2="260" y2="296" stroke="#38302A" stroke-width="1"/>
+<line x1="260" y1="296" x2="670" y2="296" stroke="#38302A" stroke-width="1"/>
+<text x="260" y="310" text-anchor="middle" font-size="11" fill="#A8957E">0</text>
+<text x="342" y="310" text-anchor="middle" font-size="11" fill="#A8957E">20</text>
+<text x="424" y="310" text-anchor="middle" font-size="11" fill="#A8957E">40</text>
+<text x="506" y="310" text-anchor="middle" font-size="11" fill="#A8957E">60</text>
+<text x="588" y="310" text-anchor="middle" font-size="11" fill="#A8957E">80</text>
+<text x="670" y="310" text-anchor="middle" font-size="11" fill="#A8957E">100</text>
+<text x="465" y="326" text-anchor="middle" font-size="12" fill="#A8957E">MAPE (%)</text>
+
+<!-- legend -->
+<rect x="20" y="337" width="18" height="10" rx="2" fill="#F4BA52"/>
+<text x="44" y="346" font-size="12" fill="#A8957E">shipped — no_cot_with_scale_reasoning</text>
+<rect x="20" y="355" width="18" height="10" rx="2" fill="#736A60"/>
+<text x="44" y="364" font-size="12" fill="#A8957E">other tested prompt arms</text>
+<line x1="20" y1="378" x2="38" y2="378" stroke="#A8957E" stroke-width="1.5" stroke-dasharray="4,3" stroke-opacity="0.6"/>
+<text x="44" y="382" font-size="12" fill="#A8957E">baseline reference (79.5% MAPE)</text>
+</svg>
