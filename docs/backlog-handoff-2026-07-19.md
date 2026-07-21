@@ -12,14 +12,15 @@ Levantamento inicial de 8 itens do backlog, com leitura de PM (impacto × esfor�
 - Botão "Continuar"/"Começar" do onboarding envolvido em `ListenableBuilder` (merge dos 5 controllers) — reage a paste/autofill, não só a digitação.
 - `flutter test`: 34/34 passando. Falta o smoke test manual em dispositivo físico (pendente configuração de `adb`).
 
-## Em andamento — spec + plano prontos, implementação pendente
-
-**Itens #1 (acurácia de KCAL) + #2 (migração de modelo Gemini)** — investigados e desenhados juntos, como recomendado abaixo.
-- Spec: `docs/superpowers/specs/2026-07-19-kcal-accuracy-and-model-design.md`
-- Plano: `docs/superpowers/plans/2026-07-19-kcal-accuracy-and-model-plan.md`
-- Achados originais que motivaram a investigação, para contexto:
-  - **KCAL:** o prompt em `lib/core/gemini/gemini_service.dart` (`_systemPrompt`) estimava massa/energia inteiramente por raciocínio visual do LLM, sem nenhuma base de dados nutricional injetada.
-  - **Modelo:** fixo em `gemini-2.5-flash-lite` (`lib/core/gemini/gemini_service.dart:11`) — a spec já confirma data de desativação (2026-10-16) e recomenda sucessor.
+**Itens #1 (acurácia de KCAL) e #2 (migração de modelo Gemini)** — investigados, benchmarkados e implementados juntos.
+- PR: https://github.com/LucasJLBraz/gema/pull/20 (branch `kcal-accuracy-and-model-migration`)
+- Benchmark contra 100 fotos reais (Nutrition5k + SNAPMe, ambos CC BY 4.0) testou 6 variantes de prompt/modelo com teste t pareado por amostra (não só MAPE agregado, que mascarava outliers). Único achado estatisticamente significativo: remover o chain-of-thought explícito (`no_cot`, t=2.08) — o grounding com a tabela TACO não ajudou sozinho (t=0.40) e apagou o ganho do `no_cot` quando combinado (t=0.26).
+- Foi para produção: `no_cot_with_scale` (sem CoT + detecção de balança na foto, sem TACO) + `gemini-3.1-flash-lite`. Esse arm não é estatisticamente diferente do baseline neste benchmark (t=0.23) — nenhuma foto de teste tem balança visível, então o valor real do recurso não pôde ser medido aqui. Decisão explícita do usuário: aposta em valor futuro (fotos reais de usuário com balança), não resultado comprovado pelo benchmark — documentado dessa forma no `README.md`.
+- Migração de modelo era necessária independentemente da acurácia: `gemini-2.5-flash-lite` já retorna HTTP 404 para chaves de API novas hoje, antes mesmo do desligamento anunciado (2026-10-16).
+- Resultados completos, tabelas (copiadas verbatim de `benchmark_results/report.md`) e citações da literatura documentados na nova seção "Meal estimation accuracy" do `README.md`, incluindo onde os resultados contrariaram a literatura citada (direção do efeito de chain-of-thought; valor do grounding tipo RAG).
+- `flutter test`: 43/43 passando. `flutter analyze`: 78 issues, igual ao baseline, zero novos. Smoke test manual completo (onboarding → câmera/galeria → chamada Gemini → tela de confirmação → salvar) feito subindo a imagem devcontainer `gema-dev` diretamente via Docker (`--device=/dev/kvm`) com uma foto real do Nutrition5k — pipeline `provisional → processing → done` confirmado.
+- Revisão de branch completa (subagente dedicado): 0 Critical, 2 Important (corrigidos antes do PR: asset TACO não utilizado removido de `pubspec.yaml` — estava embarcado em todo APK sem uso e com licença da base não confirmada; teste de regressão adicionado travando a wiring de produção contra reversão silenciosa), 6 Minor triados como dívida técnica aceita (ver `.superpowers/sdd/progress.md` na branch para detalhe por item).
+- **Pendência antes do merge:** a branch precisa de rebase sobre a `main` atual, que ganhou bumps do Dependabot e a correção da PR #15 desde que essa branch foi criada. Recomendado squash-merge ao mesclar — a branch ainda carrega seus próprios commits de spec/plano (`docs/superpowers/specs/2026-07-19-kcal-accuracy-and-model-design.md`, `docs/superpowers/plans/2026-07-19-kcal-accuracy-and-model-plan.md`), e squash evita que eles voltem ao histórico permanente da `main`, sem precisar de cirurgia manual de histórico.
 
 ## Fila — próximos itens a brainstormar
 
