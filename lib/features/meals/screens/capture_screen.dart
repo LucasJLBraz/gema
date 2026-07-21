@@ -25,6 +25,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   bool _capturing = false;
   String? _error;
   final _noteCtrl = TextEditingController();
+  bool _flashOn = false;
 
   @override
   void initState() {
@@ -80,6 +81,17 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       if (mounted) setState(() => _error = 'Erro ao capturar: $e');
     } finally {
       if (mounted) setState(() => _capturing = false);
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    final next = !_flashOn;
+    try {
+      await _controller!.setFlashMode(next ? FlashMode.torch : FlashMode.off);
+      if (mounted) setState(() => _flashOn = next);
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Erro ao ajustar o flash: $e');
     }
   }
 
@@ -178,6 +190,12 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => context.pop(),
+                    ),
+                    _CircleBtn(
+                      icon: _flashOn ? Icons.flash_on : Icons.flash_off,
+                      size: 44,
+                      onTap: _toggleFlash,
+                      tooltip: _flashOn ? 'Desligar flash' : 'Ligar flash',
                     ),
                   ],
                 ),
