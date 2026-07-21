@@ -65,9 +65,10 @@ libisar.so
 
 .worktrees/
 
-# Downloaded third-party paper PDFs (paper-rag) — keep only the .md citation
-# metadata under version control, not the copyrighted PDF content.
+# paper-rag corpus (PDFs + their .md citation metadata) — kept locally only,
+# never uploaded to the shared repo.
 references/Papers/*.pdf
+references/Papers/*.md
 
 # Contains a personal Semantic Scholar API key — never commit.
 .paper-rag.toml
