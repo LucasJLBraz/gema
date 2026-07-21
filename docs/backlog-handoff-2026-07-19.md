@@ -42,6 +42,11 @@ Levantamento inicial de 8 itens do backlog, com leitura de PM (impacto × esfor�
 - **Achado:** não investigado — é pesquisa de viabilidade pura (complicação Wear OS vs. app companheiro, entrada por voz/texto).
 - **Próximo passo:** pode rodar em paralelo a qualquer momento como um spike de pesquisa, já que não bloqueia nem depende de nenhum outro item.
 
+### 8. Onboarding com texto desatualizado sobre a chave da API Gemini (achado em 2026-07-21)
+- **Achado:** durante o smoke test manual do item #3 (ver spec `2026-07-21-unify-camera-context-flash-design.md`), a tela final do onboarding (`lib/features/onboarding/screens/onboarding_screen.dart`, em torno das linhas 536/558) mostra um texto de exemplo dizendo que a chave "começa com AIza" — o usuário confirmou que chaves novas do Google AI Studio hoje começam com `AQ`, não `AIza`. O código em si **não valida o formato da chave** (nenhum `startsWith`/regex encontrado — confirmado por investigação de código), então chaves `AQ` são aceitas normalmente; o texto é só um exemplo desatualizado que pode confundir o usuário. Também vale checar se os números de rate limit exibidos na mesma tela ("15 requisições/minuto e 1.000/dia") ainda batem com o que está documentado em `CLAUDE.md` (≤15 RPM / ~1.500 RPD) e com o limite real atual do tier grátis do `gemini-3.1-flash-lite`.
+- **Nota:** o erro "Erro: verifique os dados e tente novamente" que apareceu no primeiro teste não era sobre a chave — é um `catch` genérico em `_finish()` (mesmo arquivo) que também dispara se os campos de peso/altura/idade da etapa 1 estiverem vazios. Não investigado se vale a pena separar essa mensagem de erro por campo — anotado aqui só como observação, não como parte deste item.
+- **Próximo passo:** baixa urgência, mas rápido de resolver — atualizar o texto de exemplo e os números de rate limit no onboarding. Brainstorm dedicado opcional dado o tamanho pequeno do escopo.
+
 ## Como retomar
 
 Para qualquer item acima, o fluxo é o mesmo já seguido para os bugs #5/#6: invocar `superpowers:brainstorming` apontando para a seção correspondente deste documento, decompor em perguntas clarificadoras, propor abordagens, produzir spec em `docs/superpowers/specs/`, depois plano em `docs/superpowers/plans/`, depois execução (inline ou subagent-driven).
