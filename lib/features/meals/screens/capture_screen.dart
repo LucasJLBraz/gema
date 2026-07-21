@@ -25,16 +25,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   bool _capturing = false;
   String? _error;
   final _noteCtrl = TextEditingController();
-
-  final _stt = SpeechToText();
-  bool _sttAvailable = false;
-  bool _listening = false;
+  bool _flashOn = false;
+  String? _capturedPhotoPath;
 
   @override
   void initState() {
     super.initState();
     _initCamera();
-    _initStt();
   }
 
   Future<void> _initCamera() async {
@@ -64,43 +61,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     }
   }
 
-  Future<void> _initStt() async {
-    final ok = await _stt.initialize();
-    if (mounted) setState(() => _sttAvailable = ok);
-  }
-
   @override
   void dispose() {
     _noteCtrl.dispose();
     _controller?.dispose();
-    _stt.stop();
     super.dispose();
-  }
-
-  Future<void> _toggleListening() async {
-    if (!_sttAvailable) return;
-    if (_listening) {
-      // Second tap: stop and commit whatever was recognized
-      await _stt.stop();
-      setState(() => _listening = false);
-    } else {
-      setState(() => _listening = true);
-      await _stt.listen(
-        onResult: (r) {
-          // Update field live with every partial result
-          _noteCtrl.text = r.recognizedWords;
-          _noteCtrl.selection = TextSelection.collapsed(
-            offset: _noteCtrl.text.length,
-          );
-          if (r.finalResult) setState(() => _listening = false);
-        },
-        listenOptions: SpeechListenOptions(
-          listenFor: const Duration(minutes: 2),
-          pauseFor: const Duration(seconds: 30),
-          localeId: 'pt_BR',
-        ),
-      );
-    }
   }
 
   Future<void> _capture() async {
@@ -112,11 +77,22 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     setState(() => _capturing = true);
     try {
       final xFile = await _controller!.takePicture();
-      await _saveMealFromPath(xFile.path);
+      await _handleCapturedPhoto(xFile.path);
     } catch (e) {
       if (mounted) setState(() => _error = 'Erro ao capturar: $e');
     } finally {
       if (mounted) setState(() => _capturing = false);
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    final next = !_flashOn;
+    try {
+      await _controller!.setFlashMode(next ? FlashMode.torch : FlashMode.off);
+      if (mounted) setState(() => _flashOn = next);
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Erro ao ajustar o flash: $e');
     }
   }
 
@@ -127,17 +103,24 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       imageQuality: 90,
     );
     if (xFile == null || !mounted) return;
+    await _handleCapturedPhoto(xFile.path);
+  }
 
-    // Let user add context before processing the gallery image
+  // Shared by both the camera shutter and the gallery pick, so the two
+  // paths always ask for context the same way.
+  Future<void> _handleCapturedPhoto(String sourcePath) async {
+    // Freeze the last-captured/picked photo in place of the live camera
+    // preview so the user can see what they're describing.
+    setState(() => _capturedPhotoPath = sourcePath);
     final note = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _GalleryContextSheet(existingNote: _noteCtrl.text),
+      builder: (_) => MealContextSheet(existingNote: _noteCtrl.text),
     );
     if (!mounted) return;
-    if (note != null) _noteCtrl.text = note;
-    await _saveMealFromPath(xFile.path);
+    if (note != null && note.isNotEmpty) _noteCtrl.text = note;
+    await _saveMealFromPath(sourcePath);
   }
 
   Future<void> _saveMealFromPath(String sourcePath) async {
@@ -192,91 +175,40 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 ),
               )
             else ...[
-              // Camera preview — invert sensor ratio for portrait orientation
+              // Camera preview — invert sensor ratio for portrait orientation.
+              // Once a photo has been captured/picked, show it frozen in
+              // place of the live feed so the user can see what they're
+              // describing in the context sheet.
               Center(
-                child: AspectRatio(
-                  aspectRatio: 1.0 / _controller!.value.aspectRatio,
-                  child: CameraPreview(_controller!),
-                ),
+                child: _capturedPhotoPath != null
+                    ? Image.file(File(_capturedPhotoPath!), fit: BoxFit.contain)
+                    : AspectRatio(
+                        aspectRatio: 1.0 / _controller!.value.aspectRatio,
+                        child: CameraPreview(_controller!),
+                      ),
               ),
 
-              // Top bar: back + note + mic
+              // Top bar: back + flash toggle
               Positioned(
                 top: 16,
                 left: 16,
                 right: 16,
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => context.pop(),
                     ),
-                    Expanded(
-                      child: TextField(
-                        controller: _noteCtrl,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Descrição opcional...',
-                          hintStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
-                          ),
-                          filled: true,
-                          fillColor: Colors.black.withValues(alpha: 0.5),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
-                          suffixIcon: _sttAvailable
-                              ? IconButton(
-                                  icon: Icon(
-                                    _listening ? Icons.mic : Icons.mic_none,
-                                    color: _listening
-                                        ? Colors.redAccent
-                                        : Colors.white70,
-                                  ),
-                                  onPressed: _toggleListening,
-                                )
-                              : null,
-                        ),
-                      ),
+                    _CircleBtn(
+                      icon: _flashOn ? Icons.flash_on : Icons.flash_off,
+                      size: 44,
+                      onTap: _toggleFlash,
+                      tooltip: _flashOn ? 'Desligar flash' : 'Ligar flash',
                     ),
                   ],
                 ),
               ),
-
-              if (_listening)
-                Positioned(
-                  top: 80,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.mic, color: Colors.redAccent, size: 18),
-                          SizedBox(width: 8),
-                          Text(
-                            'Ouvindo…',
-                            style: TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
 
               // Bottom controls: gallery + capture button
               Positioned(
@@ -367,15 +299,15 @@ class _CircleBtn extends StatelessWidget {
   }
 }
 
-class _GalleryContextSheet extends StatefulWidget {
-  const _GalleryContextSheet({required this.existingNote});
+class MealContextSheet extends StatefulWidget {
+  const MealContextSheet({super.key, required this.existingNote});
   final String existingNote;
 
   @override
-  State<_GalleryContextSheet> createState() => _GalleryContextSheetState();
+  State<MealContextSheet> createState() => _MealContextSheetState();
 }
 
-class _GalleryContextSheetState extends State<_GalleryContextSheet> {
+class _MealContextSheetState extends State<MealContextSheet> {
   late final TextEditingController _ctrl;
   final _stt = SpeechToText();
   bool _sttAvailable = false;
@@ -500,7 +432,7 @@ class _GalleryContextSheetState extends State<_GalleryContextSheet> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(_ctrl.text),
+                  onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white24),
