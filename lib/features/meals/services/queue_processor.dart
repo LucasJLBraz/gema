@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 
 import '../../../core/db/database.dart';
+import '../../../core/gemini/api_key_storage.dart' as gemini;
 import '../../../core/gemini/gemini_service.dart' as gemini;
 import '../models/meal.dart';
 
@@ -67,7 +68,9 @@ class QueueProcessor {
 
         try {
           debugPrint('[QueueProcessor] analysing meal ${meal.id}');
+          final apiKey = await gemini.loadApiKey();
           final result = await gemini.estimateMeal(
+            apiKey: apiKey,
             photoPath: meal.photoPath,
             userNote: meal.userNote,
             retryCount: meal.retryCount,
