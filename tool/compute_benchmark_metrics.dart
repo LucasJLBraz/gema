@@ -18,15 +18,19 @@ double _mape(List<_Sample> samples) {
 }
 
 double _mae(List<_Sample> samples) {
-  final errors = samples.map((s) => (s.predictedKcal - s.groundTruthKcal).abs());
+  final errors = samples.map(
+    (s) => (s.predictedKcal - s.groundTruthKcal).abs(),
+  );
   return errors.reduce((a, b) => a + b) / samples.length;
 }
 
 (double mean, double sd) _blandAltmanBias(List<_Sample> samples) {
-  final diffs = samples.map((s) => s.predictedKcal - s.groundTruthKcal).toList();
+  final diffs = samples
+      .map((s) => s.predictedKcal - s.groundTruthKcal)
+      .toList();
   final mean = diffs.reduce((a, b) => a + b) / diffs.length;
-  final variance = diffs.map((d) => pow(d - mean, 2)).reduce((a, b) => a + b) /
-      diffs.length;
+  final variance =
+      diffs.map((d) => pow(d - mean, 2)).reduce((a, b) => a + b) / diffs.length;
   return (mean, sqrt(variance));
 }
 
@@ -41,8 +45,15 @@ double _mae(List<_Sample> samples) {
 /// exactly this design. Generalized to compare any non-baseline arm against
 /// baseline (not just "grounded") once more experimental arms were added.
 class _PairedResult {
-  _PairedResult(this.n, this.challengerWins, this.baselineWins, this.ties,
-      this.meanDiff, this.sdDiff, this.tStat);
+  _PairedResult(
+    this.n,
+    this.challengerWins,
+    this.baselineWins,
+    this.ties,
+    this.meanDiff,
+    this.sdDiff,
+    this.tStat,
+  );
   final int n;
   final int challengerWins;
   final int baselineWins;
@@ -66,7 +77,8 @@ _PairedResult? _pairedComparison(
     final challenger = arms[challengerArm];
     if (baseline == null || challenger == null) continue;
 
-    final baselineErr = (baseline.predictedKcal - baseline.groundTruthKcal).abs();
+    final baselineErr = (baseline.predictedKcal - baseline.groundTruthKcal)
+        .abs();
     final challengerErr =
         (challenger.predictedKcal - challenger.groundTruthKcal).abs();
     diffs.add(baselineErr - challengerErr); // positive => challenger closer
@@ -84,14 +96,21 @@ _PairedResult? _pairedComparison(
 
   final n = diffs.length;
   final meanDiff = diffs.reduce((a, b) => a + b) / n;
-  final variance = diffs.map((d) => pow(d - meanDiff, 2)).reduce((a, b) => a + b) /
-      (n - 1);
+  final variance =
+      diffs.map((d) => pow(d - meanDiff, 2)).reduce((a, b) => a + b) / (n - 1);
   final sdDiff = sqrt(variance);
   final standardError = sdDiff / sqrt(n);
   final tStat = standardError == 0 ? 0.0 : meanDiff / standardError;
 
   return _PairedResult(
-      n, challengerWins, baselineWins, ties, meanDiff, sdDiff, tStat);
+    n,
+    challengerWins,
+    baselineWins,
+    ties,
+    meanDiff,
+    sdDiff,
+    tStat,
+  );
 }
 
 void main() {
@@ -121,7 +140,8 @@ void main() {
     if (predicted == null || groundTruth['kcal'] == null) continue;
 
     final components = predicted['components'] as List? ?? [];
-    final matched = components.isNotEmpty &&
+    final matched =
+        components.isNotEmpty &&
         components.every((c) => (c as Map)['matched_reference_food'] != null);
 
     final sample = _Sample(
@@ -137,7 +157,9 @@ void main() {
   }
 
   final buffer = StringBuffer('# Benchmark report\n\n');
-  buffer.writeln('| Arm | Model | N | MAPE kcal | MAE kcal | Bias (mean±sd) | matched_reference_food rate | Latência média |');
+  buffer.writeln(
+    '| Arm | Model | N | MAPE kcal | MAE kcal | Bias (mean±sd) | matched_reference_food rate | Latência média |',
+  );
   buffer.writeln('|---|---|---|---|---|---|---|---|');
 
   for (final key in groups.keys.toList()..sort()) {
@@ -157,7 +179,9 @@ void main() {
   }
 
   buffer.writeln();
-  buffer.writeln('## Paired comparisons (challenger arm vs. baseline, same samples)');
+  buffer.writeln(
+    '## Paired comparisons (challenger arm vs. baseline, same samples)',
+  );
   buffer.writeln();
   buffer.writeln(
     'Aggregate MAPE/MAE can look improved even when the underlying '
@@ -168,19 +192,25 @@ void main() {
     'plain aggregate MAPE comparison cannot do.',
   );
   buffer.writeln();
-  buffer.writeln('| Challenger arm | Model | N pairs | Challenger wins | Baseline wins | Ties | Mean paired Δ (kcal) | t-stat |');
+  buffer.writeln(
+    '| Challenger arm | Model | N pairs | Challenger wins | Baseline wins | Ties | Mean paired Δ (kcal) | t-stat |',
+  );
   buffer.writeln('|---|---|---|---|---|---|---|---|');
 
-  final challengerArms = groups.keys
-      .map((key) => key.split('__')[0])
-      .where((arm) => arm != 'baseline')
-      .toSet()
-      .toList()
-    ..sort();
+  final challengerArms =
+      groups.keys
+          .map((key) => key.split('__')[0])
+          .where((arm) => arm != 'baseline')
+          .toSet()
+          .toList()
+        ..sort();
 
   for (final model in byModelThenIdThenArm.keys.toList()..sort()) {
     for (final challengerArm in challengerArms) {
-      final result = _pairedComparison(byModelThenIdThenArm[model]!, challengerArm);
+      final result = _pairedComparison(
+        byModelThenIdThenArm[model]!,
+        challengerArm,
+      );
       if (result == null) continue;
       buffer.writeln(
         '| $challengerArm | $model | ${result.n} | ${result.challengerWins} '

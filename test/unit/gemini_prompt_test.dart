@@ -79,27 +79,32 @@ void main() {
     });
 
     test('responseSchemaBaseline has no scale_reading fields', () {
-      final props = responseSchemaBaseline['properties'] as Map<String, dynamic>;
+      final props =
+          responseSchemaBaseline['properties'] as Map<String, dynamic>;
       expect(props.containsKey('scale_reading_used'), isFalse);
       expect(props.containsKey('scale_reading_g'), isFalse);
     });
   });
 
   group('systemPromptCombined', () {
-    test('has no numbered CoT steps but keeps grounding and scale instructions', () {
-      final prompt = systemPromptCombined('Arroz|124|2.6|25.8|1.0\n');
-      expect(prompt, isNot(contains('1. Liste os componentes')));
-      expect(prompt, contains('TABELA DE REFERÊNCIA'));
-      expect(prompt, contains('Arroz|124|2.6|25.8|1.0'));
-      expect(prompt, contains('matched_reference_food'));
-      expect(prompt, contains('balança'));
-      expect(prompt, contains('scale_reading_used'));
-    });
+    test(
+      'has no numbered CoT steps but keeps grounding and scale instructions',
+      () {
+        final prompt = systemPromptCombined('Arroz|124|2.6|25.8|1.0\n');
+        expect(prompt, isNot(contains('1. Liste os componentes')));
+        expect(prompt, contains('TABELA DE REFERÊNCIA'));
+        expect(prompt, contains('Arroz|124|2.6|25.8|1.0'));
+        expect(prompt, contains('matched_reference_food'));
+        expect(prompt, contains('balança'));
+        expect(prompt, contains('scale_reading_used'));
+      },
+    );
   });
 
   group('responseSchemaCombined', () {
     test('has both matched_reference_food and scale_reading fields', () {
-      final props = responseSchemaCombined['properties'] as Map<String, dynamic>;
+      final props =
+          responseSchemaCombined['properties'] as Map<String, dynamic>;
       expect(props.containsKey('scale_reading_used'), isTrue);
       expect(props.containsKey('scale_reading_g'), isTrue);
       final componentProps =
@@ -108,8 +113,9 @@ void main() {
                   as Map<String, dynamic>)['items']
               as Map<String, dynamic>;
       expect(
-        (componentProps['properties'] as Map<String, dynamic>)
-            .containsKey('matched_reference_food'),
+        (componentProps['properties'] as Map<String, dynamic>).containsKey(
+          'matched_reference_food',
+        ),
         isTrue,
       );
     });
@@ -117,9 +123,18 @@ void main() {
 
   group('systemPromptNoCotWithScale', () {
     test('has no numbered CoT steps and no TACO reference instruction', () {
-      expect(systemPromptNoCotWithScale, isNot(contains('1. Liste os componentes')));
-      expect(systemPromptNoCotWithScale, isNot(contains('TABELA DE REFERÊNCIA')));
-      expect(systemPromptNoCotWithScale, isNot(contains('matched_reference_food')));
+      expect(
+        systemPromptNoCotWithScale,
+        isNot(contains('1. Liste os componentes')),
+      );
+      expect(
+        systemPromptNoCotWithScale,
+        isNot(contains('TABELA DE REFERÊNCIA')),
+      );
+      expect(
+        systemPromptNoCotWithScale,
+        isNot(contains('matched_reference_food')),
+      );
       expect(systemPromptNoCotWithScale, contains('balança'));
       expect(systemPromptNoCotWithScale, contains('scale_reading_used'));
     });
@@ -146,12 +161,15 @@ void main() {
       );
     });
 
-    test('instructs the model to externalize reasoning before numeric fields', () {
-      expect(
-        systemPromptNoCotWithScaleReasoning,
-        contains('raciocinio_volumetrico'),
-      );
-    });
+    test(
+      'instructs the model to externalize reasoning before numeric fields',
+      () {
+        expect(
+          systemPromptNoCotWithScaleReasoning,
+          contains('raciocinio_volumetrico'),
+        );
+      },
+    );
 
     test('tightens the scale-confirmed uncertainty band to its own tier', () {
       expect(

@@ -70,7 +70,9 @@ void main() async {
   for (final line in lines.skip(1)) {
     if (line.trim().isEmpty) continue;
     final cols = _parseCsvLine(line);
-    if (cols[_idxPackagedFood] != '0') continue; // non-packaged only ("before" photos)
+    if (cols[_idxPackagedFood] != '0') {
+      continue; // non-packaged only ("before" photos)
+    }
 
     final filename = cols[_idxFilename];
     final t = totals.putIfAbsent(filename, () => _MealTotals());
@@ -146,19 +148,24 @@ void main() async {
   // and prepare_nutrition5k_sample.dart's unconditional overwrite would
   // silently destroy this dataset's contribution if run afterwards without
   // this guard.
-  const header = 'sample_id,dataset,image_path,weight_g,kcal,protein_g,carb_g,fat_g';
+  const header =
+      'sample_id,dataset,image_path,weight_g,kcal,protein_g,carb_g,fat_g';
   final groundTruthFile = File('benchmark_data/ground_truth.csv');
   final keptLines = groundTruthFile.existsSync()
       ? groundTruthFile
-          .readAsLinesSync()
-          .where((l) => l.isNotEmpty && l != header && !l.startsWith('snapme_'))
-          .toList()
+            .readAsLinesSync()
+            .where(
+              (l) => l.isNotEmpty && l != header && !l.startsWith('snapme_'),
+            )
+            .toList()
       : <String>[];
 
   groundTruthFile.writeAsStringSync(
     '${[header, ...keptLines, ...newRows].join('\n')}\n',
   );
   final sampledSubjects = sampleFilenames.map((f) => subjectOf[f]).toSet();
-  stderr.writeln('Wrote ${newRows.length} SNAPMe rows to benchmark_data/ground_truth.csv '
-      '(${sampledSubjects.length} distinct subjects out of ${subjectIds.length} in the dataset)');
+  stderr.writeln(
+    'Wrote ${newRows.length} SNAPMe rows to benchmark_data/ground_truth.csv '
+    '(${sampledSubjects.length} distinct subjects out of ${subjectIds.length} in the dataset)',
+  );
 }

@@ -41,9 +41,7 @@ void main() async {
       stderr.writeln('Skipping $dishId: HTTP ${response.statusCode}');
       continue;
     }
-    File(
-      '${imagesDir.path}/$dishId.png',
-    ).writeAsBytesSync(response.bodyBytes);
+    File('${imagesDir.path}/$dishId.png').writeAsBytesSync(response.bodyBytes);
   }
 
   final newRows = <String>[];
@@ -65,13 +63,14 @@ void main() async {
   // script did a plain writeAsStringSync() here, which would silently
   // destroy SNAPMe's contribution to ground_truth.csv if this script were
   // (re-)run after prepare_snapme_sample.dart.
-  const header = 'sample_id,dataset,image_path,weight_g,kcal,protein_g,carb_g,fat_g';
+  const header =
+      'sample_id,dataset,image_path,weight_g,kcal,protein_g,carb_g,fat_g';
   final groundTruthFile = File('benchmark_data/ground_truth.csv');
   final keptLines = groundTruthFile.existsSync()
       ? groundTruthFile
-          .readAsLinesSync()
-          .where((l) => l.isNotEmpty && l != header && !l.startsWith('n5k_'))
-          .toList()
+            .readAsLinesSync()
+            .where((l) => l.isNotEmpty && l != header && !l.startsWith('n5k_'))
+            .toList()
       : <String>[];
 
   groundTruthFile.writeAsStringSync(

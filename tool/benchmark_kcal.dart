@@ -128,22 +128,24 @@ Future<void> main() async {
           }
         }
 
-        out.writeln(jsonEncode({
-          'sample_id': row['sample_id'],
-          'dataset': row['dataset'],
-          'arm': arm.name,
-          'model': model,
-          'ground_truth': {
-            'weight_g': double.tryParse(row['weight_g'] ?? ''),
-            'kcal': double.tryParse(row['kcal'] ?? ''),
-            'protein_g': double.tryParse(row['protein_g'] ?? ''),
-            'carb_g': double.tryParse(row['carb_g'] ?? ''),
-            'fat_g': double.tryParse(row['fat_g'] ?? ''),
-          },
-          'predicted': predicted,
-          'latency_ms': latencyMs,
-          'error': error,
-        }));
+        out.writeln(
+          jsonEncode({
+            'sample_id': row['sample_id'],
+            'dataset': row['dataset'],
+            'arm': arm.name,
+            'model': model,
+            'ground_truth': {
+              'weight_g': double.tryParse(row['weight_g'] ?? ''),
+              'kcal': double.tryParse(row['kcal'] ?? ''),
+              'protein_g': double.tryParse(row['protein_g'] ?? ''),
+              'carb_g': double.tryParse(row['carb_g'] ?? ''),
+              'fat_g': double.tryParse(row['fat_g'] ?? ''),
+            },
+            'predicted': predicted,
+            'latency_ms': latencyMs,
+            'error': error,
+          }),
+        );
 
         await Future<void>.delayed(_delayBetweenCalls);
       }
