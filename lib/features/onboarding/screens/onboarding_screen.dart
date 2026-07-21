@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/algorithms/tdee_algorithms.dart';
 import '../../../core/gemini/api_key_storage.dart' as gemini;
@@ -8,6 +9,13 @@ import '../../../core/theme/app_theme.dart';
 import '../../goals/models/goal.dart';
 import '../../goals/providers/goal_provider.dart';
 import '../../weight/providers/weight_provider.dart';
+
+Future<void> _openAiStudioLink() async {
+  await launchUrl(
+    Uri.parse('https://aistudio.google.com'),
+    mode: LaunchMode.externalApplication,
+  );
+}
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -515,29 +523,31 @@ class _StepConfig extends StatelessWidget {
                   number: '1',
                   primary: primary,
                   text:
-                      'Abra aistudio.google.com no navegador. Faça login com sua conta Google.',
+                      'Toque no link abaixo para abrir o Google AI Studio no navegador e faça login com sua conta Google (é gratuito e leva menos de 2 minutos).',
+                  linkLabel: 'aistudio.google.com',
+                  onLinkTap: _openAiStudioLink,
                 ),
                 _Step(
                   number: '2',
                   primary: primary,
                   text:
-                      'Clique em "Get API key" no menu lateral esquerdo. Em seguida, "Create API key".',
+                      'No menu à esquerda, clique em "Get API key". Em seguida, clique em "Create API key".',
                 ),
                 _Step(
                   number: '3',
                   primary: primary,
                   text:
-                      'Selecione "Create API key in new project" (ou escolha um projeto existente). Clique em "Create".',
+                      'Selecione "Create API key in new project" (ou escolha um projeto existente, se já tiver um). Clique em "Create".',
                 ),
                 _Step(
                   number: '4',
                   primary: primary,
                   text:
-                      'Copie a chave gerada — ela começa com "AIza". Cole no campo abaixo.',
+                      'Copie a chave gerada — hoje ela começa com "AQ" (chaves mais antigas podem começar com "AIza", e ambas funcionam). Cole no campo abaixo.',
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'A chave gratuita tem limite de 15 requisições/minuto e 1.000/dia — suficiente para uso pessoal normal.',
+                  'A chave gratuita tem limite de 15 requisições/minuto e 1.500/dia — suficiente para uso pessoal normal.',
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: textSub),
@@ -555,7 +565,7 @@ class _StepConfig extends StatelessWidget {
             enableSuggestions: false,
             decoration: InputDecoration(
               labelText: 'Chave da API Gemini',
-              hintText: 'AIza...',
+              hintText: 'AQ...',
               suffixIcon: IconButton(
                 icon: Icon(visible ? Icons.visibility_off : Icons.visibility),
                 onPressed: onToggleVisibility,
@@ -580,10 +590,14 @@ class _Step extends StatelessWidget {
     required this.number,
     required this.primary,
     required this.text,
+    this.linkLabel,
+    this.onLinkTap,
   });
   final String number;
   final Color primary;
   final String text;
+  final String? linkLabel;
+  final Future<void> Function()? onLinkTap;
 
   @override
   Widget build(BuildContext context) {
@@ -612,7 +626,28 @@ class _Step extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(text, style: Theme.of(context).textTheme.bodyMedium),
+                if (linkLabel != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: InkWell(
+                      key: const Key('onboarding-aistudio-link'),
+                      onTap: onLinkTap,
+                      child: Text(
+                        linkLabel!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: primary,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

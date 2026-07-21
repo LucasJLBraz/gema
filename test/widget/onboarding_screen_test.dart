@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/link.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'package:gema/features/onboarding/screens/onboarding_screen.dart';
+
+class _FakeUrlLauncher extends UrlLauncherPlatform {
+  String? launchedUrl;
+
+  @override
+  LinkDelegate? get linkDelegate => null;
+
+  @override
+  Future<bool> canLaunch(String url) async => true;
+
+  @override
+  Future<bool> launchUrl(String url, LaunchOptions options) async {
+    launchedUrl = url;
+    return true;
+  }
+}
 
 void main() {
   Future<void> pumpOnboarding(WidgetTester tester) async {
@@ -64,6 +82,78 @@ void main() {
       await tester.pump();
 
       expect(isButtonEnabled(tester), isTrue);
+    },
+  );
+
+  testWidgets(
+    'tapping the AI Studio link on step 4 opens the URL externally',
+    (tester) async {
+      final fakeLauncher = _FakeUrlLauncher();
+      UrlLauncherPlatform.instance = fakeLauncher;
+
+      await pumpOnboarding(tester);
+
+      // Advance to step 3 (index), the API key / config step.
+      await tester.enterText(
+        find.byKey(const Key('onboarding-weight-field')),
+        '80',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-height-field')),
+        '178',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-age-field')),
+        '30',
+      );
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('onboarding-aistudio-link')));
+      await tester.pumpAndSettle();
+
+      expect(fakeLauncher.launchedUrl, 'https://aistudio.google.com');
+    },
+  );
+
+  testWidgets(
+    'step 4 shows the current API-key format and rate limits, not the stale ones',
+    (tester) async {
+      await pumpOnboarding(tester);
+
+      await tester.enterText(
+        find.byKey(const Key('onboarding-weight-field')),
+        '80',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-height-field')),
+        '178',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-age-field')),
+        '30',
+      );
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+
+      // Stale copy must be gone.
+      expect(find.textContaining('1.000/dia'), findsNothing);
+
+      // Current copy must be present: AQ as primary format, legacy AIza mentioned in reassurance.
+      expect(find.textContaining('AQ'), findsWidgets);
+      expect(find.textContaining('1.500/dia'), findsOneWidget);
+      expect(find.textContaining('ambas funcionam'), findsOneWidget);
+      expect(find.textContaining('gratuito'), findsWidgets);
     },
   );
 }
