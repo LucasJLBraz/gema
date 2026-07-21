@@ -181,10 +181,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               // describing in the context sheet.
               Center(
                 child: _capturedPhotoPath != null
-                    ? Image.file(
-                        File(_capturedPhotoPath!),
-                        fit: BoxFit.contain,
-                      )
+                    ? Image.file(File(_capturedPhotoPath!), fit: BoxFit.contain)
                     : AspectRatio(
                         aspectRatio: 1.0 / _controller!.value.aspectRatio,
                         child: CameraPreview(_controller!),

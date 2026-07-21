@@ -12,9 +12,9 @@ void main() {
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(sttChannel, (call) async {
-      if (call.method == 'initialize') return false;
-      return null;
-    });
+          if (call.method == 'initialize') return false;
+          return null;
+        });
   });
 
   tearDown(() {
@@ -66,7 +66,7 @@ void main() {
       buttonLabel: 'Pular',
       typeText: 'frango grelhado',
     );
-    expect(result == null || result!.isEmpty, isTrue);
+    expect(result == null || result.isEmpty, isTrue);
   });
 
   testWidgets('Adicionar devolve o texto digitado', (tester) async {
@@ -88,6 +88,6 @@ void main() {
       buttonLabel: 'Pular',
       typeText: 'texto novo digitado',
     );
-    expect(result == null || result!.isEmpty, isTrue);
+    expect(result == null || result.isEmpty, isTrue);
   });
 }
