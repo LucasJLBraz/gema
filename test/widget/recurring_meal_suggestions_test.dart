@@ -11,14 +11,21 @@ class _FakeMealQueueNotifier extends MealQueueNotifier {
   int? duplicatedMealId;
   int? deletedMealId;
   final int nextDuplicateId;
+  final bool shouldThrowOnDuplicate;
 
-  _FakeMealQueueNotifier({this.nextDuplicateId = 999});
+  _FakeMealQueueNotifier({
+    this.nextDuplicateId = 999,
+    this.shouldThrowOnDuplicate = false,
+  });
 
   @override
   Future<List<Meal>> build() async => [];
 
   @override
   Future<int> duplicateMeal(int originalMealId) async {
+    if (shouldThrowOnDuplicate) {
+      throw ArgumentError('Meal not found');
+    }
     duplicatedMealId = originalMealId;
     return nextDuplicateId;
   }
@@ -115,5 +122,31 @@ void main() {
     await tester.pump();
 
     expect(fakeNotifier.deletedMealId, 42);
+  });
+
+  testWidgets('shows error snackbar when duplicateMeal throws', (tester) async {
+    final fakeNotifier = _FakeMealQueueNotifier(
+      nextDuplicateId: 42,
+      shouldThrowOnDuplicate: true,
+    );
+    await pumpWidget(
+      tester,
+      suggestions: [
+        MealSuggestion(
+          mealId: 7,
+          displayText: 'café com leite e pão',
+          emoji: '☕',
+          capturedAt: DateTime.now(),
+        ),
+      ],
+      fakeNotifier: fakeNotifier,
+    );
+
+    await tester.tap(find.textContaining('café com leite e pão'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 750));
+
+    expect(find.text('Não foi possível duplicar a refeição'), findsOneWidget);
+    expect(find.text('Refeição duplicada'), findsNothing);
   });
 }

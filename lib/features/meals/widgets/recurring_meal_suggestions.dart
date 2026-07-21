@@ -13,18 +13,28 @@ class RecurringMealSuggestions extends ConsumerWidget {
     MealSuggestion suggestion,
   ) async {
     final notifier = ref.read(mealQueueNotifierProvider.notifier);
-    final newMealId = await notifier.duplicateMeal(suggestion.mealId);
-    if (!context.mounted) return;
+    try {
+      final newMealId = await notifier.duplicateMeal(suggestion.mealId);
+      if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Refeição duplicada'),
-        action: SnackBarAction(
-          label: 'Desfazer',
-          onPressed: () => notifier.deleteMeal(newMealId),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Refeição duplicada'),
+          action: SnackBarAction(
+            label: 'Desfazer',
+            onPressed: () => notifier.deleteMeal(newMealId),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível duplicar a refeição'),
+        ),
+      );
+    }
   }
 
   @override
