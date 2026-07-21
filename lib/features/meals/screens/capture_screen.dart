@@ -133,7 +133,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _GalleryContextSheet(existingNote: _noteCtrl.text),
+      builder: (_) => MealContextSheet(existingNote: _noteCtrl.text),
     );
     if (!mounted) return;
     if (note != null) _noteCtrl.text = note;
@@ -367,15 +367,15 @@ class _CircleBtn extends StatelessWidget {
   }
 }
 
-class _GalleryContextSheet extends StatefulWidget {
-  const _GalleryContextSheet({required this.existingNote});
+class MealContextSheet extends StatefulWidget {
+  const MealContextSheet({super.key, required this.existingNote});
   final String existingNote;
 
   @override
-  State<_GalleryContextSheet> createState() => _GalleryContextSheetState();
+  State<MealContextSheet> createState() => _MealContextSheetState();
 }
 
-class _GalleryContextSheetState extends State<_GalleryContextSheet> {
+class _MealContextSheetState extends State<MealContextSheet> {
   late final TextEditingController _ctrl;
   final _stt = SpeechToText();
   bool _sttAvailable = false;
@@ -500,7 +500,7 @@ class _GalleryContextSheetState extends State<_GalleryContextSheet> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(_ctrl.text),
+                  onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white24),
