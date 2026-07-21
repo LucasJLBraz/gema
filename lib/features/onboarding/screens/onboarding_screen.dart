@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/algorithms/tdee_algorithms.dart';
 import '../../../core/gemini/api_key_storage.dart' as gemini;
@@ -8,6 +9,13 @@ import '../../../core/theme/app_theme.dart';
 import '../../goals/models/goal.dart';
 import '../../goals/providers/goal_provider.dart';
 import '../../weight/providers/weight_provider.dart';
+
+Future<void> _openAiStudioLink() async {
+  await launchUrl(
+    Uri.parse('https://aistudio.google.com'),
+    mode: LaunchMode.externalApplication,
+  );
+}
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -515,7 +523,9 @@ class _StepConfig extends StatelessWidget {
                   number: '1',
                   primary: primary,
                   text:
-                      'Abra aistudio.google.com no navegador. Faça login com sua conta Google.',
+                      'Toque no link abaixo para abrir o Google AI Studio no navegador e faça login com sua conta Google (é gratuito e leva menos de 2 minutos).',
+                  linkLabel: 'aistudio.google.com',
+                  onLinkTap: _openAiStudioLink,
                 ),
                 _Step(
                   number: '2',
@@ -580,10 +590,14 @@ class _Step extends StatelessWidget {
     required this.number,
     required this.primary,
     required this.text,
+    this.linkLabel,
+    this.onLinkTap,
   });
   final String number;
   final Color primary;
   final String text;
+  final String? linkLabel;
+  final Future<void> Function()? onLinkTap;
 
   @override
   Widget build(BuildContext context) {
@@ -612,7 +626,28 @@ class _Step extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(text, style: Theme.of(context).textTheme.bodyMedium),
+                if (linkLabel != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: InkWell(
+                      key: const Key('onboarding-aistudio-link'),
+                      onTap: onLinkTap,
+                      child: Text(
+                        linkLabel!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: primary,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),

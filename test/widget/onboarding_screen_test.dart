@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher_platform_interface/link.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'package:gema/features/onboarding/screens/onboarding_screen.dart';
+
+class _FakeUrlLauncher extends UrlLauncherPlatform {
+  String? launchedUrl;
+
+  @override
+  LinkDelegate? get linkDelegate => null;
+
+  @override
+  Future<bool> canLaunch(String url) async => true;
+
+  @override
+  Future<bool> launchUrl(String url, LaunchOptions options) async {
+    launchedUrl = url;
+    return true;
+  }
+}
 
 void main() {
   Future<void> pumpOnboarding(WidgetTester tester) async {
@@ -64,6 +82,42 @@ void main() {
       await tester.pump();
 
       expect(isButtonEnabled(tester), isTrue);
+    },
+  );
+
+  testWidgets(
+    'tapping the AI Studio link on step 4 opens the URL externally',
+    (tester) async {
+      final fakeLauncher = _FakeUrlLauncher();
+      UrlLauncherPlatform.instance = fakeLauncher;
+
+      await pumpOnboarding(tester);
+
+      // Advance to step 3 (index), the API key / config step.
+      await tester.enterText(
+        find.byKey(const Key('onboarding-weight-field')),
+        '80',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-height-field')),
+        '178',
+      );
+      await tester.enterText(
+        find.byKey(const Key('onboarding-age-field')),
+        '30',
+      );
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('onboarding-aistudio-link')));
+      await tester.pumpAndSettle();
+
+      expect(fakeLauncher.launchedUrl, 'https://aistudio.google.com');
     },
   );
 }
