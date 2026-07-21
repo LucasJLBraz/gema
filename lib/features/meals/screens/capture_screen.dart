@@ -26,6 +26,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   String? _error;
   final _noteCtrl = TextEditingController();
   bool _flashOn = false;
+  String? _capturedPhotoPath;
 
   @override
   void initState() {
@@ -108,6 +109,9 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   // Shared by both the camera shutter and the gallery pick, so the two
   // paths always ask for context the same way.
   Future<void> _handleCapturedPhoto(String sourcePath) async {
+    // Freeze the last-captured/picked photo in place of the live camera
+    // preview so the user can see what they're describing.
+    setState(() => _capturedPhotoPath = sourcePath);
     final note = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -171,12 +175,20 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 ),
               )
             else ...[
-              // Camera preview — invert sensor ratio for portrait orientation
+              // Camera preview — invert sensor ratio for portrait orientation.
+              // Once a photo has been captured/picked, show it frozen in
+              // place of the live feed so the user can see what they're
+              // describing in the context sheet.
               Center(
-                child: AspectRatio(
-                  aspectRatio: 1.0 / _controller!.value.aspectRatio,
-                  child: CameraPreview(_controller!),
-                ),
+                child: _capturedPhotoPath != null
+                    ? Image.file(
+                        File(_capturedPhotoPath!),
+                        fit: BoxFit.contain,
+                      )
+                    : AspectRatio(
+                        aspectRatio: 1.0 / _controller!.value.aspectRatio,
+                        child: CameraPreview(_controller!),
+                      ),
               ),
 
               // Top bar: back + flash toggle
