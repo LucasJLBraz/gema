@@ -177,8 +177,8 @@ Future<GeminiResult> estimateMeal({
 /// [estimateMeal]'s body so a test can assert which benchmarked arm is
 /// actually wired to production without needing to mock the HTTP call —
 /// see test/unit/gemini_prompt_test.dart's "production cutover" group.
-const productionSystemPrompt = systemPromptNoCotWithScale;
-const productionResponseSchema = responseSchemaWithScale;
+const productionSystemPrompt = systemPromptNoCotWithScaleReasoning;
+const productionResponseSchema = responseSchemaWithScaleReasoning;
 
 Future<List<int>> _compressImage(String path) async {
   final bytes = await File(path).readAsBytes();
@@ -758,6 +758,164 @@ const responseSchemaCombined = {
           'estimated_mass_g': {'type': 'integer'},
           'kcal_point': {'type': 'integer'},
           'matched_reference_food': {'type': 'string', 'nullable': true},
+        },
+      },
+    },
+    'clarifying_question': {'type': 'string', 'nullable': true},
+    'assumptions': {
+      'type': 'array',
+      'items': {'type': 'string'},
+    },
+  },
+};
+
+// Structured-reasoning variant: identical to systemPromptNoCotWithScale in
+// every rule (scale detection/proration, tags, filters, name, language,
+// output) except for three changes:
+//   1. The response schema's FIRST property is now a free-text
+//      "raciocinio_volumetrico" field. Gemini's structured JSON output means
+//      the model cannot silently reason before emitting a field — token
+//      generation IS the reasoning — so asking for multi-step reasoning
+//      (scale check, per-component mass, mass->energy conversion,
+//      calibration) purely in prose instructions, with no schema field to
+//      externalize it as generated tokens, may be why systemPromptNoCot's
+//      gain (t=2.08) collapsed once combined with other changes and why
+//      systemPromptNoCotWithScale itself only reached t=0.23 (see
+//      benchmark_results/report.md). This field is placed BEFORE every
+//      numeric/derived field in responseSchemaWithScaleReasoning so the
+//      model is forced to generate the reasoning tokens first — per
+//      Gemini's structured-output behavior, fields are emitted in schema
+//      property-declaration order, so ordering here is load-bearing, not
+//      cosmetic. The app-side response parser (_parseResult) does not read
+//      this field; it exists purely as generation scratch space and is
+//      never surfaced in the UI.
+//   2. When scale_reading_used is true, the uncertainty band is tightened
+//      to its own tier (x0.95/x1.05, distinct from the "clear reference
+//      object" tier) — a confirmed scale reading removes visual-estimation
+//      uncertainty on TOTAL mass; only the mass *distribution* across
+//      components is still uncertain. This branch is never exercised by
+//      the Nutrition5k/SNAPMe benchmark photos (none contain a scale), so
+//      it cannot regress any already-measured number.
+//   3. Minor wording polish (unrelated to the above hypotheses, bundled
+//      here rather than run as a separate arm): the double-negative NOME
+//      rule is restated as a single positive instruction, and the EMOJI
+//      rule is shortened. Not expected to move accuracy numbers.
+// Requires responseSchemaWithScaleReasoning. Benchmarked as
+// 'no_cot_with_scale_reasoning' (paired t=1.43 vs baseline — not
+// significant alone at |t|>=1.98, but the second-best of all 7 arms
+// tested, well ahead of no_cot_with_scale's t=0.23, recovering most of
+// no_cot's t=2.08 gain that scale detection had erased). Promoted to
+// production on that evidence plus an explicit product decision — see
+// productionSystemPrompt/productionResponseSchema below and
+// benchmark_results/report.md for the full comparison.
+const systemPromptNoCotWithScaleReasoning = '''
+PERSONA: Você é um nutricionista clínico com 15 anos de experiência em avaliação dietética por fotografia e porcionamento visual. É meticuloso com escala e calibrado contra subestimativa.
+
+TAREFA: A partir de UMA foto (+ nota opcional), estime energia e macros da refeição.
+
+Antes de preencher qualquer valor numérico, registre seu raciocínio em "raciocinio_volumetrico": (1) verifique se há uma balança de cozinha digital visível no enquadramento com um visor legível; (2) liste os componentes visíveis do prato; (3) para cada componente, estime a massa em gramas a partir de um objeto de escala (talher, copo, mão, lata, prato) e da profundidade do recipiente, ou a partir da leitura da balança se houver; (4) anote o ajuste de calibração aplicado contra subestimativa. Escreva esse raciocínio em texto corrido, em português, de forma objetiva.
+
+Primeiro verifique se há uma balança de cozinha digital visível no enquadramento, com o prato/alimento sobre ela e o visor mostrando um valor legível em gramas ou quilogramas. Se houver e for legível, essa é a massa TOTAL real da refeição: marque "scale_reading_used" como true, "scale_reading_g" com o valor lido (convertido para gramas), e distribua esse total proporcionalmente entre os componentes pela estimativa visual relativa do volume de cada um. Se não houver balança visível ou legível, marque "scale_reading_used" como false, "scale_reading_g" como null, e estime a massa de cada componente pela escala visual normal (objeto de referência + profundidade do recipiente).
+
+Converta a massa de cada componente em energia e macros. Calibre o ponto central para cima contra subestimativa — exceto quando "scale_reading_used" for true, caso em que a massa total já é real e não deve ser inflada.
+
+INCERTEZA: devolva intervalo por componente e total.
+  - SEM objeto de referência confiável E SEM leitura de balança → min = ponto×0.75, max = ponto×1.45
+  - COM objeto de referência claro, SEM leitura de balança          → min = ponto×0.85, max = ponto×1.25
+  - COM leitura de balança confirmada (scale_reading_used = true)   → min = ponto×0.95, max = ponto×1.05
+
+TAGS (controlado — NÃO invente fora desta lista):
+  grupo_alimentar ∈ {proteina_animal, proteina_vegetal, laticinio, graos_cereais, tuberculo, leguminosa, vegetal, fruta, gordura_oleo, doce_acucar, bebida_calorica, bebida_zero, molho_condimento, ultraprocessado, outro}
+  metodo_preparo ∈ {cru, cozido, grelhado, frito, assado, refogado, no_vapor, liquido, desconhecido}
+
+FILTRO DE PERGUNTA: só preencha "clarifying_question" se a dúvida alterar a energia em >300 kcal. Senão, null.
+
+EMOJI: em "meal_emoji" coloque UM único emoji que melhor representa a refeição, com a maior especificidade possível (ex: 🥚 ovos, 🍗 frango, 🍝 macarrão, 🥗 salada, 🍕 pizza, 🍛 prato completo/misto).
+
+NOME: em "meal_name" gere um nome curto da refeição com no máximo 4 palavras, descrevendo o conteúdo (item dominante ou os dois itens principais) em vez de categorias de horário como café da manhã/almoço/jantar/lanche. Exemplos: "Whey com leite", "Misto quente", "Frango com arroz", "Omelete de queijo", "Suco de laranja".
+
+IDIOMA: Todos os campos de texto (meal_summary, name dos componentes, clarifying_question, raciocinio_volumetrico) DEVEM estar em português brasileiro. Nunca use inglês — mesmo para alimentos de origem estrangeira (ex: "hambúrguer", "sushi", "macarrão", "bife", "frango grelhado").
+
+SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
+''';
+
+// Pairs with systemPromptNoCotWithScaleReasoning. raciocinio_volumetrico is
+// declared FIRST, before every other property, because Gemini emits JSON
+// object fields in schema declaration order — placing it first forces the
+// model to generate the reasoning text before any numeric/derived field,
+// giving it real token-generation "space" to reason rather than asking for
+// silent internal reasoning the model has no mechanism to perform under
+// structured JSON output. This field is intentionally NOT read by
+// _parseResult in this file or by any production code — it is
+// benchmark/scratch-only and is expected to be ignored by the UI if this
+// arm is ever promoted to production.
+const responseSchemaWithScaleReasoning = {
+  'type': 'object',
+  'properties': {
+    'raciocinio_volumetrico': {'type': 'string'},
+    'meal_name': {'type': 'string'},
+    'meal_summary': {'type': 'string'},
+    'meal_emoji': {'type': 'string'},
+    'ai_confidence': {
+      'type': 'string',
+      'enum': ['high', 'medium', 'low'],
+    },
+    'scale_reference_found': {'type': 'boolean'},
+    'scale_reading_used': {'type': 'boolean'},
+    'scale_reading_g': {'type': 'integer', 'nullable': true},
+    'estimates': {
+      'type': 'object',
+      'properties': {
+        'calories_kcal': {
+          'type': 'object',
+          'properties': {
+            'min': {'type': 'integer'},
+            'max': {'type': 'integer'},
+            'point': {'type': 'integer'},
+          },
+        },
+        'macros_g': {
+          'type': 'object',
+          'properties': {
+            'protein': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+            'carbohydrates': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+            'fat': {
+              'type': 'object',
+              'properties': {
+                'min': {'type': 'integer'},
+                'max': {'type': 'integer'},
+                'point': {'type': 'integer'},
+              },
+            },
+          },
+        },
+      },
+    },
+    'components': {
+      'type': 'array',
+      'items': {
+        'type': 'object',
+        'properties': {
+          'name': {'type': 'string'},
+          'normalized_tag': {'type': 'string'},
+          'grupo_alimentar': {'type': 'string'},
+          'metodo_preparo': {'type': 'string'},
+          'estimated_mass_g': {'type': 'integer'},
+          'kcal_point': {'type': 'integer'},
         },
       },
     },

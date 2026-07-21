@@ -125,11 +125,82 @@ void main() {
     });
   });
 
-  group('production cutover', () {
-    test('estimateMeal is wired to the benchmark-validated no_cot_with_scale arm', () {
-      expect(productionModel, 'gemini-3.1-flash-lite');
-      expect(productionSystemPrompt, systemPromptNoCotWithScale);
-      expect(productionResponseSchema, responseSchemaWithScale);
+  group('systemPromptNoCotWithScaleReasoning', () {
+    test('has no numbered CoT steps and no TACO reference instruction', () {
+      expect(
+        systemPromptNoCotWithScaleReasoning,
+        isNot(contains('1. Liste os componentes')),
+      );
+      expect(
+        systemPromptNoCotWithScaleReasoning,
+        isNot(contains('TABELA DE REFERÊNCIA')),
+      );
+      expect(
+        systemPromptNoCotWithScaleReasoning,
+        isNot(contains('matched_reference_food')),
+      );
+      expect(systemPromptNoCotWithScaleReasoning, contains('balança'));
+      expect(
+        systemPromptNoCotWithScaleReasoning,
+        contains('scale_reading_used'),
+      );
     });
+
+    test('instructs the model to externalize reasoning before numeric fields', () {
+      expect(
+        systemPromptNoCotWithScaleReasoning,
+        contains('raciocinio_volumetrico'),
+      );
+    });
+
+    test('tightens the scale-confirmed uncertainty band to its own tier', () {
+      expect(
+        systemPromptNoCotWithScaleReasoning,
+        contains('ponto×0.95, max = ponto×1.05'),
+      );
+    });
+  });
+
+  group('responseSchemaWithScaleReasoning', () {
+    test('adds raciocinio_volumetrico as a top-level string field', () {
+      final props =
+          responseSchemaWithScaleReasoning['properties']
+              as Map<String, dynamic>;
+      expect(props.containsKey('raciocinio_volumetrico'), isTrue);
+      expect(
+        (props['raciocinio_volumetrico'] as Map<String, dynamic>)['type'],
+        'string',
+      );
+    });
+
+    test('raciocinio_volumetrico is the FIRST declared property', () {
+      final props =
+          responseSchemaWithScaleReasoning['properties']
+              as Map<String, dynamic>;
+      expect(props.keys.first, 'raciocinio_volumetrico');
+    });
+
+    test('otherwise matches responseSchemaWithScale field set', () {
+      final reasoningProps =
+          responseSchemaWithScaleReasoning['properties']
+              as Map<String, dynamic>;
+      final scaleProps =
+          responseSchemaWithScale['properties'] as Map<String, dynamic>;
+      final reasoningKeysMinusNew = reasoningProps.keys
+          .where((k) => k != 'raciocinio_volumetrico')
+          .toSet();
+      expect(reasoningKeysMinusNew, scaleProps.keys.toSet());
+    });
+  });
+
+  group('production cutover', () {
+    test(
+      'estimateMeal is wired to the benchmark-validated no_cot_with_scale_reasoning arm',
+      () {
+        expect(productionModel, 'gemini-3.1-flash-lite');
+        expect(productionSystemPrompt, systemPromptNoCotWithScaleReasoning);
+        expect(productionResponseSchema, responseSchemaWithScaleReasoning);
+      },
+    );
   });
 }

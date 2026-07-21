@@ -45,18 +45,24 @@ Future<void> main() async {
     exit(1);
   }
 
-  // 'baseline', 'grounded', 'no_cot', 'with_scale', and 'combined' already
-  // ran in prior invocations of this script (results are in
-  // benchmark_results/raw_results.jsonl, appended to below rather than
-  // overwritten). 'combined' (no_cot style + TACO + scale) unexpectedly
-  // erased no_cot's gain (t went from 2.08 to 0.26) -- this run tests
-  // whether dropping the TACO table specifically (keeping no_cot's style +
-  // scale) recovers it.
+  // 'baseline', 'grounded', 'no_cot', 'with_scale', 'combined', and
+  // 'no_cot_with_scale' already ran in prior invocations of this script
+  // (results are in benchmark_results/raw_results.jsonl, appended to below
+  // rather than overwritten). 'no_cot_with_scale' shipped to production
+  // (t=0.23, not significant on this benchmark's scale=false-only sample,
+  // but chosen for its scale-detection capability and no_cot's simpler
+  // style). This run tests a domain-expert-suggested refinement:
+  // 'no_cot_with_scale_reasoning' adds a raciocinio_volumetrico scratch
+  // field (generated before the numeric fields, giving the model real
+  // token-generation space to reason under structured JSON output) plus a
+  // tightened scale-confirmed uncertainty band and minor wording polish --
+  // see the comment above systemPromptNoCotWithScaleReasoning in
+  // lib/core/gemini/gemini_service.dart for the full hypothesis.
   final arms = [
     const _Arm(
-      'no_cot_with_scale',
-      systemPromptNoCotWithScale,
-      responseSchemaWithScale,
+      'no_cot_with_scale_reasoning',
+      systemPromptNoCotWithScaleReasoning,
+      responseSchemaWithScaleReasoning,
     ),
   ];
 

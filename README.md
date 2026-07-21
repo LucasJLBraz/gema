@@ -123,10 +123,11 @@ The chart below is generated from synthetic data run through the exact algorithm
 The Gemini prompt that estimates calories/macros from a meal photo was benchmarked
 against 100 real photos (Nutrition5k + SNAPMe, both public CC BY 4.0 datasets) across
 several prompt variants — a chain-of-thought ablation, a Brazilian nutrition
-reference-table grounding step ([TACO](https://github.com/brolesi/taco)), and a
-scale-in-frame detection instruction — before shipping any change to production, using a
-paired per-sample t-test rather than aggregate MAPE alone (aggregate metrics can look
-improved from a few outliers even when no individual prediction actually got better).
+reference-table grounding step ([TACO](https://github.com/brolesi/taco)), a scale-in-frame
+detection instruction, and a structured-reasoning field — before shipping any change to
+production, using a paired per-sample t-test rather than aggregate MAPE alone (aggregate
+metrics can look improved from a few outliers even when no individual prediction actually
+got better).
 
 | Arm | Model | N | MAPE kcal | MAE kcal | Bias (mean±sd) | matched_reference_food rate | Latência média |
 |---|---|---|---|---|---|---|---|
@@ -135,6 +136,7 @@ improved from a few outliers even when no individual prediction actually got bet
 | grounded | gemini-3.1-flash-lite | 100 | 74.9% | 104.0 kcal | 10.0±146.8 | 68% | 4.2s |
 | no_cot | gemini-3.1-flash-lite | 100 | 55.9% | 96.9 kcal | -15.1±145.0 | 0% | 3.6s |
 | no_cot_with_scale | gemini-3.1-flash-lite | 100 | 95.7% | 105.8 kcal | -13.1±153.8 | 0% | 5.8s |
+| no_cot_with_scale_reasoning | gemini-3.1-flash-lite | 100 | 57.4% | 99.5 kcal | -15.6±152.4 | 0% | 5.6s |
 | with_scale | gemini-3.1-flash-lite | 100 | 56.8% | 105.3 kcal | -12.4±152.9 | 0% | 3.2s |
 
 Paired comparison of each challenger arm against baseline on the exact same 100 samples
@@ -146,17 +148,25 @@ Paired comparison of each challenger arm against baseline on the exact same 100 
 | grounded | 100 | 49 (49%) | 48 (48%) | 3 | 2.9 | 0.40 |
 | no_cot | 100 | 47 (47%) | 31 (31%) | 22 | 10.0 | 2.08 |
 | no_cot_with_scale | 100 | 40 (40%) | 42 (42%) | 18 | 1.1 | 0.23 |
+| no_cot_with_scale_reasoning | 100 | 44 (44%) | 37 (37%) | 19 | 7.4 | 1.43 |
 | with_scale | 100 | 46 (46%) | 38 (38%) | 16 | 1.6 | 0.30 |
 
-**What shipped:** `no_cot_with_scale` — removing the numbered chain-of-thought steps and
-adding a scale-in-frame reading instruction, without the TACO reference table — on
-`gemini-3.1-flash-lite`. Only the plain chain-of-thought removal (`no_cot`, t=2.08)
-cleared the significance threshold on this benchmark; adding the scale instruction on top
-brought the paired result back down to statistically indistinguishable from baseline
-(t=0.23). We shipped it anyway: none of the 100 benchmark photos contain a visible
-kitchen scale, so the scale-reading capability's real value can't be measured against this
-ground truth at all — it can only be evaluated once real user photos include one.
-Migrating off `gemini-2.5-flash-lite` was justified independent of any of this: it
+**What shipped:** `no_cot_with_scale_reasoning` — `no_cot_with_scale` plus a
+`raciocinio_volumetrico` free-text field declared *first* in the response schema, so the
+model generates its scale-check/component/mass-estimation reasoning as real tokens before
+committing to any numeric field, instead of being asked to "reason silently" under
+structured JSON output (which it has no mechanism to actually do) — plus a tightened
+uncertainty band for the scale-confirmed case. This recovered most of the accuracy lost
+when scale detection was first added to `no_cot`: paired t rose from `no_cot_with_scale`'s
+0.23 to 1.43 (still short of the ~1.98 significance threshold, but the second-best result
+of all 7 arms tested, well ahead of every other scale/grounding variant) and MAPE fell from
+95.7% back down to 57.4%, close to plain `no_cot`'s 55.9%, without a latency regression
+(5.6s vs. 5.8s). This finding came from an external prompt-engineering review after the
+initial `no_cot_with_scale` ship decision — see the git history for the original,
+weaker-evidence ship rationale. None of the 100 benchmark photos contain a visible kitchen
+scale, so the scale-reading capability's real value still can't be fully measured against
+this ground truth — that part of the ship decision remains a product bet, not a proven
+result. Migrating off `gemini-2.5-flash-lite` was justified independent of any of this: it
 already returns HTTP 404 for newly-created API keys today, well before its announced
 2026-10-16 shutdown.
 
@@ -177,6 +187,19 @@ kcal) — the opposite direction from Vedovelli et al. (2026), who found no sign
 prompt-engineering effect (including chain-of-thought) across 40 vision-language models on
 Nutrition5k. The reason for the reversal here is not established; it may be specific to
 this model or this task framing.
+
+**On structured reasoning vs. suppressed reasoning:** the `no_cot` result above looks like
+it contradicts giving the model any reasoning step at all — but `no_cot_with_scale_reasoning`
+shows the contradiction is about *how* reasoning is elicited, not whether it happens. The
+original chain-of-thought prompts (`baseline`, `grounded`, `with_scale`) asked the model to
+"reason internally" across numbered steps while still emitting pure JSON immediately —
+impossible for a model whose only mechanism for "thinking" is generating tokens, since
+suppressing the reasoning output suppresses the reasoning itself. Giving the model an actual
+schema field (`raciocinio_volumetrico`, declared first so it's generated before any numeric
+field) to externalize that same reasoning as real tokens recovered most of `no_cot`'s
+advantage that scale detection had erased (t: 0.23 → 1.43; MAPE: 95.7% → 57.4%), with no
+latency regression. This is a genuinely different mechanism from the rejected CoT prompts,
+not a re-test of them.
 
 **Literature:**
 - L. Vedovelli et al., "Model architecture dominates nutritional estimation accuracy in
