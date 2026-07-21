@@ -5,6 +5,7 @@ import 'package:isar/isar.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/db/database.dart';
+import '../../../core/utils/text_normalization.dart';
 import '../models/meal.dart';
 
 part 'meal_provider.g.dart';
@@ -153,7 +154,7 @@ class MealQueueNotifier extends _$MealQueueNotifier {
       final compObjects = components.map((c) {
         return MealComponent()
           ..name = c['name'] as String? ?? ''
-          ..normalizedTag = _normalize(c['normalized_tag'] as String? ?? '')
+          ..normalizedTag = normalizeText(c['normalized_tag'] as String? ?? '')
           ..kcalPoint = (c['kcal_point'] as num?)?.toInt() ?? 0
           ..grupoAlimentar = c['grupo_alimentar'] as String? ?? 'outro'
           ..metodoPreparo = c['metodo_preparo'] as String? ?? 'desconhecido'
@@ -215,16 +216,4 @@ class MealQueueNotifier extends _$MealQueueNotifier {
     }
     ref.invalidateSelf();
   }
-}
-
-String _normalize(String tag) {
-  return tag
-      .toLowerCase()
-      .trim()
-      .replaceAll(RegExp(r'[àáâãä]'), 'a')
-      .replaceAll(RegExp(r'[èéêë]'), 'e')
-      .replaceAll(RegExp(r'[ìíîï]'), 'i')
-      .replaceAll(RegExp(r'[òóôõö]'), 'o')
-      .replaceAll(RegExp(r'[ùúûü]'), 'u')
-      .replaceAll(RegExp(r'[ç]'), 'c');
 }
