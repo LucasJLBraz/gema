@@ -543,7 +543,7 @@ class _StepConfig extends StatelessWidget {
                   number: '4',
                   primary: primary,
                   text:
-                      'Copie a chave gerada — ela começa com "AQ". Cole no campo abaixo.',
+                      'Copie a chave gerada — hoje ela começa com "AQ" (chaves mais antigas podem começar com "AIza", e ambas funcionam). Cole no campo abaixo.',
                 ),
                 const SizedBox(height: 6),
                 Text(

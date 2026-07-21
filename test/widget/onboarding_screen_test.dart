@@ -147,12 +147,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Stale copy must be gone.
-      expect(find.textContaining('AIza'), findsNothing);
       expect(find.textContaining('1.000/dia'), findsNothing);
 
-      // Current copy must be present.
+      // Current copy must be present: AQ as primary format, legacy AIza mentioned in reassurance.
       expect(find.textContaining('AQ'), findsWidgets);
       expect(find.textContaining('1.500/dia'), findsOneWidget);
+      expect(find.textContaining('ambas funcionam'), findsOneWidget);
       expect(find.textContaining('gratuito'), findsWidgets);
     },
   );
