@@ -163,8 +163,8 @@ Future<GeminiResult> estimateMeal({
   }
 
   return callGemini(
-    systemPrompt: systemPromptNoCotWithScale,
-    responseSchema: responseSchemaWithScale,
+    systemPrompt: productionSystemPrompt,
+    responseSchema: productionResponseSchema,
     model: productionModel,
     apiKey: apiKey,
     photoPath: photoPath,
@@ -172,6 +172,13 @@ Future<GeminiResult> estimateMeal({
     retryCount: retryCount,
   );
 }
+
+/// Named seam for the production prompt/schema choice, kept separate from
+/// [estimateMeal]'s body so a test can assert which benchmarked arm is
+/// actually wired to production without needing to mock the HTTP call —
+/// see test/unit/gemini_prompt_test.dart's "production cutover" group.
+const productionSystemPrompt = systemPromptNoCotWithScale;
+const productionResponseSchema = responseSchemaWithScale;
 
 Future<List<int>> _compressImage(String path) async {
   final bytes = await File(path).readAsBytes();
@@ -599,7 +606,7 @@ const responseSchemaWithScale = {
 
 // no_cot + scale, without the TACO table: the first "combined" experiment
 // (no_cot style + TACO grounding + scale) unexpectedly erased no_cot's
-// paired-comparison gain (t went from 2.08 down to -0.08) — see
+// paired-comparison gain (t went from 2.08 down to 0.26) — see
 // benchmark_results/report.md. Suspected cause: the ~8-12k token TACO
 // reference block diluting the model's attention on the core estimation
 // task, independent of whether individual TACO matches are even correct
@@ -650,7 +657,7 @@ SAÍDA: responda SOMENTE o JSON do schema. Sem markdown, sem texto fora do JSON.
 // Requires responseSchemaCombined. See benchmark_results/report.md
 // ("no_cot + grounded + scale" section) for the real benchmark evidence on
 // this exact combination, gathered after this constant was added — this
-// arm's result (t=-0.08, gain erased) led directly to
+// arm's result (t=0.26, gain erased) led directly to
 // systemPromptNoCotWithScale above being tried as a follow-up.
 String systemPromptCombined(String referenceTableBlock) => '''
 PERSONA: Você é um nutricionista clínico com 15 anos de experiência em avaliação dietética por fotografia e porcionamento visual. É meticuloso com escala e calibrado contra subestimativa.

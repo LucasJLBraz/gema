@@ -124,4 +124,12 @@ void main() {
       expect(systemPromptNoCotWithScale, contains('scale_reading_used'));
     });
   });
+
+  group('production cutover', () {
+    test('estimateMeal is wired to the benchmark-validated no_cot_with_scale arm', () {
+      expect(productionModel, 'gemini-3.1-flash-lite');
+      expect(productionSystemPrompt, systemPromptNoCotWithScale);
+      expect(productionResponseSchema, responseSchemaWithScale);
+    });
+  });
 }

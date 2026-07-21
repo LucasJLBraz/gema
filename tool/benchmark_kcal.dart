@@ -49,7 +49,7 @@ Future<void> main() async {
   // ran in prior invocations of this script (results are in
   // benchmark_results/raw_results.jsonl, appended to below rather than
   // overwritten). 'combined' (no_cot style + TACO + scale) unexpectedly
-  // erased no_cot's gain (t went from 2.08 to -0.08) -- this run tests
+  // erased no_cot's gain (t went from 2.08 to 0.26) -- this run tests
   // whether dropping the TACO table specifically (keeping no_cot's style +
   // scale) recovers it.
   final arms = [
