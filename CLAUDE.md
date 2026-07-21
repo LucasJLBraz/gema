@@ -11,7 +11,7 @@ GEMA is an offline-first Android diet tracker built with Flutter. It uses Isar a
 - **Language:** Dart, Flutter stable
 - **State management:** Riverpod (`flutter_riverpod` + `riverpod_annotation`)
 - **Database:** Isar (reactive, typed, offline-first)
-- **AI:** Gemini 2.5 Flash-Lite — structured JSON output, free-tier rate limits (≤15 RPM / 1 000 RPD)
+- **AI:** Gemini 3.1 Flash-Lite — structured JSON output, free-tier rate limits (≤15 RPM / ~1 500 RPD)
 - **Background tasks:** workmanager
 - **Secure storage:** flutter_secure_storage (Gemini API key only — never hardcode or log it)
 - **Target:** Android API 36 (x86_64 emulator `gema_emulator` pre-configured in devcontainer)

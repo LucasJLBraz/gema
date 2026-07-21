@@ -6,7 +6,7 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 
-const productionModel = 'gemini-2.5-flash-lite';
+const productionModel = 'gemini-3.1-flash-lite';
 
 Uri _endpointFor(String model, String apiKey) => Uri.parse(
   'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
@@ -163,8 +163,8 @@ Future<GeminiResult> estimateMeal({
   }
 
   return callGemini(
-    systemPrompt: systemPromptBaseline,
-    responseSchema: responseSchemaBaseline,
+    systemPrompt: systemPromptNoCotWithScale,
+    responseSchema: responseSchemaWithScale,
     model: productionModel,
     apiKey: apiKey,
     photoPath: photoPath,
