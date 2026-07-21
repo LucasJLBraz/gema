@@ -216,4 +216,61 @@ class MealQueueNotifier extends _$MealQueueNotifier {
     }
     ref.invalidateSelf();
   }
+
+  Future<int> duplicateMeal(int originalMealId) async {
+    final original = await isar.meals.get(originalMealId);
+    if (original == null) {
+      throw ArgumentError('Meal $originalMealId not found');
+    }
+    await original.components.load();
+
+    final now = DateTime.now();
+    final duplicate = Meal()
+      ..capturedAt = now
+      ..userNote = original.userNote
+      ..source = MealSource.quickAdd
+      ..status = MealStatus.done
+      ..kcalMin = original.kcalMin
+      ..kcalMax = original.kcalMax
+      ..kcalPoint = original.kcalPoint
+      ..carbMin = original.carbMin
+      ..carbMax = original.carbMax
+      ..carbPoint = original.carbPoint
+      ..proteinMin = original.proteinMin
+      ..proteinMax = original.proteinMax
+      ..proteinPoint = original.proteinPoint
+      ..fatMin = original.fatMin
+      ..fatMax = original.fatMax
+      ..fatPoint = original.fatPoint
+      ..aiConfidence = original.aiConfidence
+      ..aiEmoji = original.aiEmoji
+      ..retryCount = 0
+      ..userEditedKcal = false
+      ..createdAt = now
+      ..updatedAt = now;
+
+    final newComponents = original.components
+        .map(
+          (c) => MealComponent()
+            ..name = c.name
+            ..normalizedTag = c.normalizedTag
+            ..kcalPoint = c.kcalPoint
+            ..grupoAlimentar = c.grupoAlimentar
+            ..metodoPreparo = c.metodoPreparo
+            ..estimatedMassG = c.estimatedMassG,
+        )
+        .toList();
+
+    await isar.writeTxn(() async {
+      await isar.meals.put(duplicate);
+      if (newComponents.isNotEmpty) {
+        await isar.mealComponents.putAll(newComponents);
+        await duplicate.components.load();
+        duplicate.components.addAll(newComponents);
+        await duplicate.components.save();
+      }
+    });
+    ref.invalidateSelf();
+    return duplicate.id;
+  }
 }
