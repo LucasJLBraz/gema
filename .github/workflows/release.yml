@@ -42,9 +42,10 @@ jobs:
         run: flutter pub get
 
       - name: Build release APK
-        # NOTE: release build is currently signed with the debug keystore
-        # (see android/app/build.gradle.kts) so it installs directly without
-        # a dedicated signing key. Not Play Store-ready.
+        # NOTE: signed with the shared debug keystore committed at
+        # android/app/gema-debug.keystore (see android/app/build.gradle.kts),
+        # so every build uses the same key and installs as an update over the
+        # previous one. Not Play Store-ready — sideloading only.
         run: flutter build apk --release
 
       - name: Rename artifact

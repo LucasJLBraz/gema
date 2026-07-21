@@ -26,10 +26,24 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Shared debug keystore committed at android/app/gema-debug.keystore so
+        // every build (CI or local) signs with the same key. Without this, AGP
+        // falls back to the per-machine ~/.android/debug.keystore, which is a
+        // different key on every GitHub Actions runner — that mismatch is what
+        // makes Android refuse to install an "update" over the previous build.
+        getByName("debug") {
+            storeFile = file("gema-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Not Play Store-ready: signed with the shared debug keystore above,
+            // which is fine for sideloading to yourself/friends.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

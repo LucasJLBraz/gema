@@ -12,3 +12,8 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Exception: shared, low-sensitivity debug keystore committed on purpose so
+# every CI build and local `flutter run`/`flutter build apk` sign with the
+# same key. Never do this for a real release keystore.
+!app/gema-debug.keystore
