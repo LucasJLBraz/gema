@@ -5,6 +5,7 @@ import 'package:isar/isar.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/db/database.dart';
+import '../../../core/utils/text_normalization.dart';
 import '../models/meal.dart';
 
 part 'meal_provider.g.dart';
@@ -153,7 +154,7 @@ class MealQueueNotifier extends _$MealQueueNotifier {
       final compObjects = components.map((c) {
         return MealComponent()
           ..name = c['name'] as String? ?? ''
-          ..normalizedTag = _normalize(c['normalized_tag'] as String? ?? '')
+          ..normalizedTag = normalizeText(c['normalized_tag'] as String? ?? '')
           ..kcalPoint = (c['kcal_point'] as num?)?.toInt() ?? 0
           ..grupoAlimentar = c['grupo_alimentar'] as String? ?? 'outro'
           ..metodoPreparo = c['metodo_preparo'] as String? ?? 'desconhecido'
@@ -215,16 +216,61 @@ class MealQueueNotifier extends _$MealQueueNotifier {
     }
     ref.invalidateSelf();
   }
-}
 
-String _normalize(String tag) {
-  return tag
-      .toLowerCase()
-      .trim()
-      .replaceAll(RegExp(r'[àáâãä]'), 'a')
-      .replaceAll(RegExp(r'[èéêë]'), 'e')
-      .replaceAll(RegExp(r'[ìíîï]'), 'i')
-      .replaceAll(RegExp(r'[òóôõö]'), 'o')
-      .replaceAll(RegExp(r'[ùúûü]'), 'u')
-      .replaceAll(RegExp(r'[ç]'), 'c');
+  Future<int> duplicateMeal(int originalMealId) async {
+    final original = await isar.meals.get(originalMealId);
+    if (original == null) {
+      throw ArgumentError('Meal $originalMealId not found');
+    }
+    await original.components.load();
+
+    final now = DateTime.now();
+    final duplicate = Meal()
+      ..capturedAt = now
+      ..userNote = original.userNote
+      ..source = MealSource.quickAdd
+      ..status = MealStatus.done
+      ..kcalMin = original.kcalMin
+      ..kcalMax = original.kcalMax
+      ..kcalPoint = original.kcalPoint
+      ..carbMin = original.carbMin
+      ..carbMax = original.carbMax
+      ..carbPoint = original.carbPoint
+      ..proteinMin = original.proteinMin
+      ..proteinMax = original.proteinMax
+      ..proteinPoint = original.proteinPoint
+      ..fatMin = original.fatMin
+      ..fatMax = original.fatMax
+      ..fatPoint = original.fatPoint
+      ..aiConfidence = original.aiConfidence
+      ..aiEmoji = original.aiEmoji
+      ..retryCount = 0
+      ..userEditedKcal = false
+      ..createdAt = now
+      ..updatedAt = now;
+
+    final newComponents = original.components
+        .map(
+          (c) => MealComponent()
+            ..name = c.name
+            ..normalizedTag = c.normalizedTag
+            ..kcalPoint = c.kcalPoint
+            ..grupoAlimentar = c.grupoAlimentar
+            ..metodoPreparo = c.metodoPreparo
+            ..estimatedMassG = c.estimatedMassG,
+        )
+        .toList();
+
+    await isar.writeTxn(() async {
+      await isar.meals.put(duplicate);
+      if (newComponents.isNotEmpty) {
+        await isar.mealComponents.putAll(newComponents);
+        await duplicate.components.load();
+        duplicate.components.addAll(newComponents);
+        await duplicate.components.save();
+      }
+    });
+    ref.invalidateSelf();
+    return duplicate.id;
+  }
 }

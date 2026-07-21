@@ -296,7 +296,7 @@ class _MealByIdProviderElement extends AutoDisposeFutureProviderElement<Meal?>
   int get id => (origin as MealByIdProvider).id;
 }
 
-String _$mealQueueNotifierHash() => r'44f0d27adaaeb2d8238e2bfff67deb3163842c7a';
+String _$mealQueueNotifierHash() => r'0b14dcfd2ca07d16f07ea3b1cbf5c33be4fcf801';
 
 /// See also [MealQueueNotifier].
 @ProviderFor(MealQueueNotifier)

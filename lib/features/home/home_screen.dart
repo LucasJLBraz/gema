@@ -8,6 +8,7 @@ import '../goals/providers/goal_provider.dart';
 import '../meals/models/meal.dart';
 import '../meals/providers/meal_provider.dart';
 import '../meals/screens/describe_meal_sheet.dart';
+import '../meals/widgets/recurring_meal_suggestions.dart';
 import '../water/providers/water_provider.dart';
 import 'widgets/calorie_ring.dart';
 import 'widgets/macro_bars.dart';
@@ -412,6 +413,7 @@ class _QuickAddSheetState extends ConsumerState<_QuickAddSheet> {
         children: [
           Text('Quick Add', style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 20),
+          const RecurringMealSuggestions(),
           TextField(
             controller: _kcalCtrl,
             keyboardType: TextInputType.number,

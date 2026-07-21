@@ -6,6 +6,7 @@ import 'package:isar/isar.dart';
 import '../../../core/db/database.dart';
 import '../../../core/gemini/api_key_storage.dart' as gemini;
 import '../../../core/gemini/gemini_service.dart' as gemini;
+import '../../../core/utils/text_normalization.dart';
 import '../models/meal.dart';
 
 /// Singleton that watches Isar for queued meals and processes them
@@ -139,7 +140,7 @@ class QueueProcessor {
       final compObjects = result.components.map((c) {
         return MealComponent()
           ..name = c['name'] as String? ?? ''
-          ..normalizedTag = _normalize(c['normalized_tag'] as String? ?? '')
+          ..normalizedTag = normalizeText(c['normalized_tag'] as String? ?? '')
           ..kcalPoint = (c['kcal_point'] as num?)?.toInt() ?? 0
           ..grupoAlimentar = c['grupo_alimentar'] as String? ?? 'outro'
           ..metodoPreparo = c['metodo_preparo'] as String? ?? 'desconhecido'
@@ -152,16 +153,4 @@ class QueueProcessor {
       await meal.components.save();
     });
   }
-}
-
-String _normalize(String tag) {
-  return tag
-      .toLowerCase()
-      .trim()
-      .replaceAll(RegExp(r'[àáâãä]'), 'a')
-      .replaceAll(RegExp(r'[èéêë]'), 'e')
-      .replaceAll(RegExp(r'[ìíîï]'), 'i')
-      .replaceAll(RegExp(r'[òóôõö]'), 'o')
-      .replaceAll(RegExp(r'[ùúûü]'), 'u')
-      .replaceAll(RegExp(r'[ç]'), 'c');
 }
